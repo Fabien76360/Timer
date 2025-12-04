@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lean Timer · Blueprint Factory</title>
+  <style>
+    :root {
+      --bg: #0f2c52;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-strong: rgba(255, 255, 255, 0.12);
+      --text-main: #e8f1ff;
+      --text-soft: #b9d4ff;
+      --accent-blue: #4da3ff;
+      --accent-green: #58d68d;
+      --accent-orange: #ff8f5c;
+      --accent-red: #ff6b6b;
+      --border: rgba(255, 255, 255, 0.18);
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--text-main);
+      background: var(--bg);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto 48px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    h2.subtitle {
+      margin: 0;
+      font-weight: 400;
+      color: var(--text-soft);
+      font-size: 15px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+    }
+
+    .tab {
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      min-width: 120px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .tab.active {
+      background: linear-gradient(120deg, rgba(77,163,255,0.4), rgba(46,109,191,0.65));
+      border-color: rgba(77,163,255,0.9);
+      box-shadow: 0 12px 26px rgba(77, 163, 255, 0.35);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 18px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+
+    .card strong.title {
+      display: block;
+      margin-bottom: 12px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .small-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button, input, select {
+      font-family: inherit;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      color: var(--bg);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    .btn:active { transform: translateY(0); filter: brightness(0.95); }
+
+    .btn-blue { background: linear-gradient(135deg, #7ec9ff, #4da3ff); border-color: rgba(125, 200, 255, 0.7); }
+    .btn-green { background: linear-gradient(135deg, #63e6a6, #3ccf7f); border-color: rgba(99, 230, 166, 0.7); }
+    .btn-orange { background: linear-gradient(135deg, #ffae7c, #ff8f5c); border-color: rgba(255, 174, 124, 0.9); }
+    .btn-ghost { background: transparent; color: var(--text-main); border-color: var(--border); box-shadow: none; }
+
+    .sessions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 220px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .session-item {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .session-item:hover { border-color: rgba(77,163,255,0.6); }
+    .session-item.active {
+      background: linear-gradient(120deg, rgba(77,163,255,0.25), rgba(46,109,191,0.35));
+      border-color: rgba(77,163,255,0.9);
+      box-shadow: 0 12px 26px rgba(77, 163, 255, 0.35);
+    }
+
+    .session-name { font-weight: 700; }
+    .session-date { color: var(--text-soft); font-size: 12px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 12px; color: var(--text-soft); }
+
+    input, select {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    input:focus, select:focus { border-color: rgba(77,163,255,0.8); box-shadow: 0 0 0 3px rgba(77,163,255,0.2); }
+
+    .chrono-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .chrono-global {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .chrono-action {
+      font-size: 20px;
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .current-action-name {
+      width: 100%;
+      font-size: 16px;
+      margin-top: 6px;
+    }
+
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 12px 0 4px; }
+
+    .actions-list {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px 120px;
+      gap: 8px 12px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .actions-list .header { color: var(--text-soft); font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .chip { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 6px; }
+    .chip.badge { background: rgba(77,163,255,0.15); }
+
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; }
+    .table th { color: var(--text-soft); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .table input, .table select { width: 100%; }
+
+    .synthesis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      padding: 12px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat .value { font-size: 22px; font-weight: 800; }
+    .stat .label { color: var(--text-soft); font-size: 13px; }
+
+    .bar-wrapper { width: 100%; height: 12px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .bar-inner { display: flex; height: 100%; }
+    .bar-va { background: rgba(88,214,141,0.8); }
+    .bar-nva { background: rgba(255,143,92,0.85); }
+
+    .export-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-block">
+        <h1>LEAN TIMER · BLUEPRINT FACTORY</h1>
+        <h2 class="subtitle">Chronométrage séquentiel terrain &amp; analyse Lean</h2>
+      </div>
+      <div class="tabs">
+        <div class="tab active" data-view="capture">Capture</div>
+        <div class="tab" data-view="analyse">Analyse</div>
+      </div>
+    </header>
+
+    <div id="capture-view" class="layout"></div>
+    <div id="analysis-view" class="layout" style="display:none;"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'lean-timer-blueprint';
+    const state = {
+      sessions: [],
+      selectedSessionId: null,
+      timerInterval: null
+    };
+
+    function uid() { return Math.random().toString(36).slice(2, 10); }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          const data = JSON.parse(raw);
+          state.sessions = data.sessions || [];
+          state.selectedSessionId = data.selectedSessionId || (state.sessions[0]?.id || null);
+        } catch (e) {
+          console.error('Failed to parse state', e);
+          state.sessions = [];
+          state.selectedSessionId = null;
+        }
+      }
+      if (!state.sessions.length) {
+        const session = createSession('Session 1');
+        state.sessions.push(session);
+        state.selectedSessionId = session.id;
+        saveState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        sessions: state.sessions,
+        selectedSessionId: state.selectedSessionId
+      }));
+    }
+
+    function getCurrentSession() {
+      return state.sessions.find(s => s.id === state.selectedSessionId) || state.sessions[0];
+    }
+
+    function getCurrentAction(session) {
+      if (!session) return null;
+      const actions = session.actions || [];
+      if (!actions.length) return null;
+      const last = actions[actions.length - 1];
+      return last.endTime ? null : last;
+    }
+
+    function createSession(name = 'Nouvelle session') {
+      const today = new Date().toISOString().slice(0,10);
+      return {
+        id: uid(),
+        name,
+        createdAt: Date.now(),
+        startedAt: null,
+        endedAt: null,
+        meta: { date: today, line: '', po: '', observer: '' },
+        actions: []
+      };
+    }
+
+    function selectSession(id) {
+      state.selectedSessionId = id;
+      stopTimer();
+      render();
+      saveState();
+    }
+
+    function duplicateSession() {
+      const current = getCurrentSession();
+      if (!current) return;
+      const clone = createSession(current.name + ' (copie)');
+      clone.meta = { ...current.meta };
+      state.sessions.push(clone);
+      selectSession(clone.id);
+    }
+
+    function deleteSession() {
+      if (state.sessions.length <= 1) return alert('Impossible de supprimer la dernière session.');
+      const current = getCurrentSession();
+      if (!current) return;
+      if (confirm('Supprimer cette session ?')) {
+        state.sessions = state.sessions.filter(s => s.id !== current.id);
+        state.selectedSessionId = state.sessions[0].id;
+        stopTimer();
+        saveState();
+        render();
+      }
+    }
+
+    function renameSession() {
+      const current = getCurrentSession();
+      if (!current) return;
+      const name = prompt('Nouveau nom de session', current.name);
+      if (name) {
+        current.name = name;
+        saveState();
+        render();
+      }
+    }
+
+    function startStudy() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      if (!session.startedAt) session.startedAt = now;
+      session.endedAt = null;
+      if (!getCurrentAction(session)) {
+        startNewAction();
+      }
+      startTimer();
+      saveState();
+      renderCaptureView();
+    }
+
+    function startNewAction(type) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      if (!session.startedAt) session.startedAt = now;
+      const current = getCurrentAction(session);
+      if (current) {
+        current.endTime = now;
+        current.duration = current.endTime - current.startTime;
+      }
+      const order = session.actions.length + 1;
+      session.actions.push({
+        id: uid(),
+        order,
+        name: `Action ${order}`,
+        startTime: now,
+        endTime: null,
+        duration: 0,
+        type: type || 'VA'
+      });
+      session.endedAt = null;
+      startTimer();
+      saveState();
+      renderCaptureView();
+    }
+
+    function stopStudy() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      const current = getCurrentAction(session);
+      if (current) {
+        current.endTime = now;
+        current.duration = current.endTime - current.startTime;
+      }
+      session.endedAt = now;
+      stopTimer();
+      saveState();
+      render();
+    }
+
+    function markType(type) {
+      const session = getCurrentSession();
+      const current = getCurrentAction(session);
+      if (current) {
+        current.type = type;
+        saveState();
+        render();
+      }
+    }
+
+    function undoLastAction() {
+      const session = getCurrentSession();
+      if (!session || !session.actions.length) return;
+      session.actions.pop();
+      if (!session.actions.length) {
+        stopTimer();
+        session.startedAt = null;
+        session.endedAt = null;
+      } else {
+        const last = session.actions[session.actions.length - 1];
+        if (last.endTime) {
+          session.endedAt = last.endTime;
+          stopTimer();
+        }
+      }
+      saveState();
+      render();
+    }
+
+    function updateCurrentActionName(value) {
+      const session = getCurrentSession();
+      const current = getCurrentAction(session);
+      if (current) {
+        current.name = value || '';
+        saveState();
+        render();
+      }
+    }
+
+    function updateMeta(field, value) {
+      const session = getCurrentSession();
+      if (!session) return;
+      session.meta[field] = value;
+      saveState();
+      render();
+    }
+
+    function startTimer() {
+      if (state.timerInterval) return;
+      state.timerInterval = setInterval(() => {
+        renderCaptureView();
+        renderAnalysisView();
+      }, 500);
+    }
+
+    function stopTimer() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+    }
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      if (hours > 0) {
+        return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+      }
+      return `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '-';
+      const d = new Date(ts);
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function computeDuration(action) {
+      if (!action) return 0;
+      const end = action.endTime || Date.now();
+      return Math.max(0, end - action.startTime);
+    }
+
+    function render() {
+      renderCaptureView();
+      renderAnalysisView();
+    }
+
+    function sidebarHTML() {
+      return `
+        <div class="column">
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Sessions</strong>
+              <div class="small-actions">
+                <button class="btn btn-ghost" onclick="selectSession(createSessionAndReturn().id)">Nouvelle</button>
+                <button class="btn btn-ghost" onclick="duplicateSession()">Dupliquer</button>
+              </div>
+            </div>
+            <div class="sessions-list">
+              ${state.sessions.map(s => `
+                <div class="session-item ${s.id === state.selectedSessionId ? 'active' : ''}" onclick="selectSession('${s.id}')">
+                  <div class="session-name">${s.name}</div>
+                  <div class="session-date">${s.meta?.date || ''}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="small-actions" style="margin-top:10px;">
+              <button class="btn btn-ghost" onclick="renameSession()">Renommer</button>
+              <button class="btn btn-ghost" onclick="deleteSession()">Supprimer</button>
+            </div>
+          </div>
+          ${renderSessionInfoCard()}
+        </div>`;
+    }
+
+    function createSessionAndReturn() {
+      const session = createSession(`Session ${state.sessions.length + 1}`);
+      state.sessions.push(session);
+      state.selectedSessionId = session.id;
+      saveState();
+      render();
+      return session;
+    }
+
+    function renderSessionInfoCard() {
+      const s = getCurrentSession();
+      const meta = s?.meta || {};
+      return `
+        <div class="card">
+          <strong class="title">Informations session</strong>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nom d'étude</label>
+              <input value="${s?.name || ''}" oninput="renameInline(this.value)">
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" value="${meta.date || ''}" oninput="updateMeta('date', this.value)">
+            </div>
+            <div class="form-group">
+              <label>Ligne</label>
+              <input value="${meta.line || ''}" oninput="updateMeta('line', this.value)">
+            </div>
+            <div class="form-group">
+              <label>PO / Ordre</label>
+              <input value="${meta.po || ''}" oninput="updateMeta('po', this.value)">
+            </div>
+            <div class="form-group">
+              <label>Observateur</label>
+              <input value="${meta.observer || ''}" oninput="updateMeta('observer', this.value)">
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renameInline(value) {
+      const s = getCurrentSession();
+      if (!s) return;
+      s.name = value;
+      saveState();
+      render();
+    }
+
+    function renderCaptureView() {
+      const capture = document.getElementById('capture-view');
+      if (!capture) return;
+      const s = getCurrentSession();
+      const action = getCurrentAction(s);
+      const currentActionDuration = action ? computeDuration(action) : 0;
+      const totalDuration = s && s.startedAt ? Math.max(0, (s.endedAt || Date.now()) - s.startedAt) : 0;
+      capture.innerHTML = `
+        ${sidebarHTML()}
+        <div class="column">
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Mode Capture</strong>
+              <div class="chip badge">${s?.name || ''}</div>
+            </div>
+            <div class="chrono-block">
+              <div class="chrono-global">${formatDuration(totalDuration)}</div>
+              <div class="chrono-action">${action?.name || 'Action en cours'} · ${formatDuration(currentActionDuration)}</div>
+              <input class="current-action-name" placeholder="Nom de l'action en cours" value="${action?.name || ''}" oninput="updateCurrentActionName(this.value)">
+            </div>
+            <div class="button-row">
+              <button class="btn btn-blue" onclick="startStudy()">Start / Resume</button>
+              <button class="btn btn-green" onclick="startNewAction()">Next Step</button>
+              <button class="btn btn-orange" onclick="stopStudy()">Stop</button>
+            </div>
+            <div class="button-row">
+              <button class="btn btn-ghost" onclick="markType('Attente')">Attente</button>
+              <button class="btn btn-ghost" onclick="markType('Déplacement')">Déplacement</button>
+              <button class="btn btn-ghost" onclick="undoLastAction()">Annuler dernière</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Actions de l'étude</strong>
+              <div class="chip">${s?.actions?.length || 0} action(s)</div>
+            </div>
+            <div class="actions-list">
+              <div class="header">Nom</div>
+              <div class="header">Durée</div>
+              <div class="header">Type</div>
+              <div class="header">Statut</div>
+              ${(s?.actions || []).map(a => `
+                <div>${a.name}</div>
+                <div>${formatDuration(computeDuration(a))}</div>
+                <div>${a.type}</div>
+                <div>${a.endTime ? 'Terminé' : 'En cours'}</div>
+              `).join('')}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderAnalysisView() {
+      const analysis = document.getElementById('analysis-view');
+      if (!analysis) return;
+      if (analysis.style.display === 'none') return; // avoid work when hidden
+      const s = getCurrentSession();
+      const actions = s?.actions || [];
+      const totalDuration = actions.reduce((sum, a) => sum + computeDuration(a), 0);
+      const totalVA = actions.filter(a => a.type === 'VA').reduce((sum, a) => sum + computeDuration(a), 0);
+      const totalNVA = totalDuration - totalVA;
+      const vaPct = totalDuration ? Math.round((totalVA / totalDuration) * 100) : 0;
+      const nvaPct = 100 - vaPct;
+      const comment = totalDuration && (totalNVA / totalDuration > 0.4)
+        ? 'Part de NVA élevée, prioriser les étapes d’attente et de déplacement.'
+        : 'Répartition VA/NVA maîtrisée, consolider les standards et cibler les gaspillages résiduels.';
+      analysis.innerHTML = `
+        ${sidebarHTML()}
+        <div class="column">
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Tableau des actions</strong>
+              <div class="chip">${actions.length} ligne(s)</div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Ordre</th>
+                  <th>Nom</th>
+                  <th>Durée</th>
+                  <th>Type</th>
+                  <th>Début</th>
+                  <th>Fin</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${actions.map(a => `
+                  <tr>
+                    <td>${a.order}</td>
+                    <td><input value="${a.name}" oninput="updateActionField('${a.id}','name', this.value)"></td>
+                    <td>${formatDuration(computeDuration(a))}</td>
+                    <td>
+                      <select onchange="updateActionField('${a.id}','type', this.value)">
+                        ${['VA','NVA','Attente','Déplacement'].map(opt => `<option value="${opt}" ${a.type===opt?'selected':''}>${opt}</option>`).join('')}
+                      </select>
+                    </td>
+                    <td>${formatTime(a.startTime)}</td>
+                    <td>${a.endTime ? formatTime(a.endTime) : '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Synthèse Lean</strong>
+            </div>
+            <div class="synthesis">
+              <div class="stat"><div class="value">${formatDuration(totalDuration)}</div><div class="label">Durée totale</div></div>
+              <div class="stat"><div class="value">${formatDuration(totalVA)}</div><div class="label">VA</div></div>
+              <div class="stat"><div class="value">${formatDuration(totalNVA)}</div><div class="label">NVA</div></div>
+              <div class="stat"><div class="value">${vaPct}% / ${nvaPct}%</div><div class="label">VA / NVA</div></div>
+            </div>
+            <div class="bar-wrapper">
+              <div class="bar-inner">
+                <div class="bar-va" style="width:${vaPct}%;"></div>
+                <div class="bar-nva" style="width:${nvaPct}%;"></div>
+              </div>
+            </div>
+            <p style="margin-top:10px; color: var(--text-soft);">${comment}</p>
+            <div class="export-row">
+              <button class="btn btn-blue" onclick="exportCSV()">Export CSV</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function updateActionField(actionId, field, value) {
+      const s = getCurrentSession();
+      if (!s) return;
+      const action = s.actions.find(a => a.id === actionId);
+      if (action) {
+        action[field] = value;
+        saveState();
+        renderAnalysisView();
+        renderCaptureView();
+      }
+    }
+
+    function exportCSV() {
+      const s = getCurrentSession();
+      if (!s) return;
+      const header = `SessionName;Date;Line;PO;Observer`;
+      const metaLine = `${s.name};${s.meta.date};${s.meta.line};${s.meta.po};${s.meta.observer}`;
+      const rows = s.actions.map(a => {
+        const durationSeconds = Math.round(computeDuration(a) / 1000);
+        return `${a.order};${a.name};${a.type};${new Date(a.startTime).toISOString()};${a.endTime ? new Date(a.endTime).toISOString() : ''};${durationSeconds}`;
+      });
+      const csv = [header, metaLine, ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${s.name || 'session'}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function switchView(view) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.tab[data-view="${view}"]`).classList.add('active');
+      document.getElementById('capture-view').style.display = view === 'capture' ? 'grid' : 'none';
+      document.getElementById('analysis-view').style.display = view === 'analyse' ? 'grid' : 'none';
+      if (view === 'analyse') renderAnalysisView();
+    }
+
+    function bindTabEvents() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => switchView(tab.dataset.view));
+      });
+    }
+
+    function init() {
+      loadState();
+      render();
+      bindTabEvents();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
