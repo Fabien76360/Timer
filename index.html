@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lean Timer · Blueprint Factory</title>
+  <style>
+    :root {
+      --blueprint-bg: #0f2c52;
+      --grid-color: rgba(255, 255, 255, 0.05);
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-strong: rgba(255, 255, 255, 0.12);
+      --accent: #6ee7ff;
+      --text-main: #e8f1ff;
+      --text-dim: #8fb3e0;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --success: #34d399;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--blueprint-bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(15, 44, 82, 0.92) 0%, rgba(15, 44, 82, 0.78) 100%);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--panel-strong);
+      padding: 18px 26px 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .title {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .title span {
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .view-tabs {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .tab-btn {
+      background: var(--panel);
+      border: 1px solid var(--panel-strong);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #0b1f3c;
+      box-shadow: 0 12px 32px rgba(110, 231, 255, 0.35);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--panel-strong);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.25);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: 0.6px;
+      color: var(--accent);
+    }
+
+    .timer-face {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.2));
+      border: 1px solid var(--panel-strong);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .timer-face .label {
+      font-size: 16px;
+      color: var(--text-dim);
+    }
+
+    .timer-face .time {
+      font-size: 34px;
+      letter-spacing: 1.4px;
+      font-weight: 700;
+    }
+
+    .current-action {
+      margin-top: 12px;
+      background: var(--panel);
+      border: 1px solid var(--panel-strong);
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .current-action-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text-main);
+    }
+
+    .current-action-header .time {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      font-size: 16px;
+    }
+
+    .inline-input {
+      display: grid;
+      gap: 6px;
+    }
+
+    .inline-input label {
+      color: var(--text-dim);
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+
+    .inline-input input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--panel-strong);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 15px;
+      transition: border 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .inline-input input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(110, 231, 255, 0.15);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--panel-strong);
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      background: var(--panel);
+      color: var(--text-main);
+      text-transform: uppercase;
+      transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #6ee7ff, #22d3ee); color: #052039; border: none; }
+    .btn-positive { background: linear-gradient(135deg, #34d399, #10b981); border: none; color: #031510; }
+    .btn-warning { background: linear-gradient(135deg, #fbbf24, #f59e0b); border: none; color: #2e1b02; }
+    .btn-danger { background: linear-gradient(135deg, #f87171, #ef4444); border: none; color: #2e0505; }
+    .btn-ghost { background: rgba(255, 255, 255, 0.08); }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 110px 140px;
+      gap: 10px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-strong);
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+
+    .action-row input,
+    .action-row select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-strong);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+    }
+
+    .action-row .meta {
+      color: var(--text-dim);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--panel-strong);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .pill h3 {
+      margin: 0 0 6px;
+      color: var(--text-dim);
+      font-size: 13px;
+      letter-spacing: 0.6px;
+    }
+
+    .pill .value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>Lean Timer · Blueprint Factory</h1>
+      <span>Capture & Analyse</span>
+    </div>
+    <div class="view-tabs">
+      <button class="tab-btn active" data-target="capture-view">Capture</button>
+      <button class="tab-btn" data-target="analysis-view">Analyse</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="capture-view" class="view active">
+      <div class="grid">
+        <div class="stack">
+          <div class="card">
+            <h2>Chronométrage</h2>
+            <div class="timer-face">
+              <div class="label">Chrono global</div>
+              <div class="time" id="global-time">00:00</div>
+            </div>
+
+            <div class="current-action">
+              <div class="current-action-header">
+                <span id="current-action-label">Action 1</span>
+                <span class="time" id="current-action-time">00:00</span>
+              </div>
+              <div class="inline-input">
+                <label for="current-action-name-input">Nom de l’action en cours</label>
+                <input id="current-action-name-input" type="text" autocomplete="off" placeholder="Action en cours">
+              </div>
+            </div>
+
+            <div class="controls">
+              <button class="btn btn-primary" id="start-btn">Start / Resume</button>
+              <button class="btn btn-positive" id="next-btn">Next Step</button>
+              <button class="btn btn-warning" id="stop-btn">Stop</button>
+              <button class="btn btn-ghost" id="waiting-btn">Attente</button>
+              <button class="btn btn-ghost" id="move-btn">Déplacement</button>
+              <button class="btn btn-danger" id="undo-btn">Annuler dernière</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Actions en cours</h2>
+            <div id="capture-action-list" class="action-list"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Session</h2>
+          <div class="stack">
+            <div class="inline-input">
+              <label for="session-select">Sélection de session</label>
+              <select id="session-select"></select>
+            </div>
+            <button class="btn" id="new-session-btn">Nouvelle session</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="analysis-view" class="view">
+      <div class="card">
+        <h2>Tableau des actions</h2>
+        <div id="analysis-action-list" class="action-list"></div>
+        <div class="summary-bar">
+          <div class="pill">
+            <h3>Actions</h3>
+            <div class="value" id="summary-count">0</div>
+          </div>
+          <div class="pill">
+            <h3>Durée totale</h3>
+            <div class="value" id="summary-duration">00:00</div>
+          </div>
+          <div class="pill">
+            <h3>VA</h3>
+            <div class="value" id="summary-va">00:00</div>
+          </div>
+          <div class="pill">
+            <h3>NVA</h3>
+            <div class="value" id="summary-nva">00:00</div>
+          </div>
+        </div>
+        <div style="margin-top: 14px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn" id="export-btn">Export CSV</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'lean-timer-sessions';
+
+    let sessions = [];
+    let selectedSessionId = null;
+    let isRunning = false;
+    let tickHandle = null;
+
+    function uid() {
+      return 'id-' + Math.random().toString(36).slice(2, 10);
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          sessions = parsed.sessions || [];
+          selectedSessionId = parsed.selectedSessionId || (sessions[0]?.id ?? null);
+        } catch (err) {
+          sessions = [];
+          selectedSessionId = null;
+        }
+      }
+      if (!sessions.length) {
+        const session = createSession();
+        sessions.push(session);
+        selectedSessionId = session.id;
+        saveState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ sessions, selectedSessionId }));
+    }
+
+    function createSession(name = '') {
+      const now = Date.now();
+      return {
+        id: uid(),
+        name: name || `Session ${sessions.length + 1}`,
+        createdAt: now,
+        startedAt: null,
+        endedAt: null,
+        actions: [],
+      };
+    }
+
+    function getCurrentSession() {
+      return sessions.find((s) => s.id === selectedSessionId) || null;
+    }
+
+    function getCurrentAction(session) {
+      if (!session || !session.actions.length) return null;
+      return session.actions[session.actions.length - 1];
+    }
+
+    function formatTime(ms) {
+      if (!ms || ms < 0) ms = 0;
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    }
+
+    function startStudy() {
+      const session = getCurrentSession();
+      if (!session) return;
+      if (!session.startedAt) session.startedAt = Date.now();
+
+      const current = getCurrentAction(session);
+      if (!current || current.endTime) {
+        startNewAction();
+      }
+
+      isRunning = true;
+      if (tickHandle) clearInterval(tickHandle);
+      tickHandle = setInterval(updateTimers, 500);
+      updateTimers();
+      saveState();
+    }
+
+    function startNewAction() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      const current = getCurrentAction(session);
+      if (current && !current.endTime) {
+        current.endTime = now;
+        current.duration = now - current.startTime;
+      }
+      const nextIndex = session.actions.length + 1;
+      session.actions.push({
+        id: uid(),
+        name: `Action ${nextIndex}`,
+        startTime: now,
+        endTime: null,
+        duration: 0,
+        type: 'VA',
+      });
+      isRunning = true;
+      if (tickHandle) clearInterval(tickHandle);
+      tickHandle = setInterval(updateTimers, 500);
+      updateTimers();
+      saveState();
+    }
+
+    function stopStudy() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      const current = getCurrentAction(session);
+      if (current && !current.endTime) {
+        current.endTime = now;
+        current.duration = now - current.startTime;
+      }
+      session.endedAt = now;
+      isRunning = false;
+      if (tickHandle) clearInterval(tickHandle);
+      tickHandle = null;
+      updateTimers();
+      saveState();
+    }
+
+    function markType(type) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const current = getCurrentAction(session);
+      if (current) {
+        current.type = type;
+        saveState();
+        renderAnalysis();
+        renderCaptureActions();
+      }
+    }
+
+    function undoLastAction() {
+      const session = getCurrentSession();
+      if (!session || !session.actions.length) return;
+      session.actions.pop();
+      if (!session.actions.length) {
+        isRunning = false;
+        if (tickHandle) clearInterval(tickHandle);
+        tickHandle = null;
+      }
+      saveState();
+      updateTimers();
+      renderCaptureActions();
+      renderAnalysis();
+    }
+
+    function updateTimers() {
+      const session = getCurrentSession();
+      const globalEl = document.getElementById('global-time');
+      const actionLabelEl = document.getElementById('current-action-label');
+      const actionTimeEl = document.getElementById('current-action-time');
+      const actionInput = document.getElementById('current-action-name-input');
+
+      if (!session) return;
+
+      const now = Date.now();
+      let globalElapsed = 0;
+      if (session.startedAt) {
+        const endPoint = session.endedAt && !isRunning ? session.endedAt : now;
+        globalElapsed = endPoint - session.startedAt;
+      }
+      globalEl.textContent = formatTime(globalElapsed);
+
+      const current = getCurrentAction(session);
+      if (current) {
+        const label = current.name || 'Action en cours';
+        actionLabelEl.textContent = label;
+        actionInput.value = label;
+        const endTime = current.endTime && !isRunning ? current.endTime : now;
+        const elapsed = (current.startTime ? endTime - current.startTime : 0);
+        actionTimeEl.textContent = formatTime(elapsed);
+      } else {
+        actionLabelEl.textContent = 'Aucune action';
+        actionTimeEl.textContent = '00:00';
+        actionInput.value = '';
+      }
+      renderCaptureActions();
+      renderAnalysis();
+    }
+
+    function updateCurrentActionNameFromInput(value) {
+      const session = getCurrentSession();
+      const current = getCurrentAction(session);
+      if (!session || !current) return;
+      current.name = value || `Action ${session.actions.length}`;
+      saveState();
+      renderCaptureActions();
+      renderAnalysis();
+    }
+
+    function renderSessionSelect() {
+      const select = document.getElementById('session-select');
+      select.innerHTML = '';
+      sessions.forEach((session) => {
+        const option = document.createElement('option');
+        option.value = session.id;
+        option.textContent = session.name;
+        if (session.id === selectedSessionId) option.selected = true;
+        select.appendChild(option);
+      });
+    }
+
+    function renderCaptureActions() {
+      const container = document.getElementById('capture-action-list');
+      const session = getCurrentSession();
+      container.innerHTML = '';
+      if (!session) return;
+      session.actions.forEach((action, index) => {
+        const row = document.createElement('div');
+        row.className = 'action-row';
+        const name = document.createElement('div');
+        name.textContent = action.name;
+        const duration = document.createElement('div');
+        const effectiveEnd = action.endTime || Date.now();
+        duration.textContent = formatTime(effectiveEnd - action.startTime);
+        const type = document.createElement('div');
+        type.textContent = action.type || 'VA';
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const label = action.endTime ? 'Terminé' : index === session.actions.length - 1 ? 'En cours' : 'Terminé';
+        meta.textContent = label;
+
+        row.appendChild(name);
+        row.appendChild(duration);
+        row.appendChild(type);
+        row.appendChild(meta);
+        container.appendChild(row);
+      });
+    }
+
+    function renderAnalysis() {
+      const container = document.getElementById('analysis-action-list');
+      const session = getCurrentSession();
+      container.innerHTML = '';
+      if (!session) return;
+
+      let total = 0;
+      let totalVA = 0;
+      let totalNVA = 0;
+
+      session.actions.forEach((action, index) => {
+        const end = action.endTime || Date.now();
+        const duration = action.startTime ? end - action.startTime : 0;
+        total += duration;
+        if (action.type === 'VA') totalVA += duration; else totalNVA += duration;
+
+        const row = document.createElement('div');
+        row.className = 'action-row';
+
+        const nameInput = document.createElement('input');
+        nameInput.value = action.name;
+        nameInput.oninput = (e) => {
+          action.name = e.target.value;
+          saveState();
+          updateTimers();
+        };
+
+        const durationCell = document.createElement('div');
+        durationCell.textContent = formatTime(duration);
+
+        const typeSelect = document.createElement('select');
+        ['VA', 'NVA', 'Attente', 'Déplacement'].forEach((opt) => {
+          const option = document.createElement('option');
+          option.value = opt;
+          option.textContent = opt;
+          if (opt === action.type) option.selected = true;
+          typeSelect.appendChild(option);
+        });
+        typeSelect.onchange = (e) => {
+          action.type = e.target.value;
+          saveState();
+          updateTimers();
+        };
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `<span>Début : ${action.startTime ? new Date(action.startTime).toLocaleTimeString() : '-'}</span><span>Fin : ${action.endTime ? new Date(action.endTime).toLocaleTimeString() : '-'}</span>`;
+
+        row.appendChild(nameInput);
+        row.appendChild(durationCell);
+        row.appendChild(typeSelect);
+        row.appendChild(meta);
+        container.appendChild(row);
+      });
+
+      document.getElementById('summary-count').textContent = session.actions.length;
+      document.getElementById('summary-duration').textContent = formatTime(total);
+      document.getElementById('summary-va').textContent = formatTime(totalVA);
+      document.getElementById('summary-nva').textContent = formatTime(totalNVA);
+    }
+
+    function exportCSV() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const headers = ['Nom', 'Début', 'Fin', 'Durée (s)', 'Type'];
+      const rows = session.actions.map((action) => {
+        const end = action.endTime || Date.now();
+        const durationSeconds = action.startTime ? Math.round((end - action.startTime) / 1000) : 0;
+        return [
+          action.name,
+          action.startTime ? new Date(action.startTime).toISOString() : '',
+          action.endTime ? new Date(action.endTime).toISOString() : '',
+          durationSeconds,
+          action.type,
+        ];
+      });
+      const csv = [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${session.name || 'session'}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function switchView(targetId) {
+      document.querySelectorAll('.view').forEach((view) => {
+        view.classList.toggle('active', view.id === targetId);
+      });
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.target === targetId);
+      });
+    }
+
+    function bindEvents() {
+      document.getElementById('start-btn').addEventListener('click', startStudy);
+      document.getElementById('next-btn').addEventListener('click', startNewAction);
+      document.getElementById('stop-btn').addEventListener('click', stopStudy);
+      document.getElementById('waiting-btn').addEventListener('click', () => markType('Attente'));
+      document.getElementById('move-btn').addEventListener('click', () => markType('Déplacement'));
+      document.getElementById('undo-btn').addEventListener('click', undoLastAction);
+      document.getElementById('export-btn').addEventListener('click', exportCSV);
+      document.getElementById('current-action-name-input').addEventListener('input', (e) => updateCurrentActionNameFromInput(e.target.value));
+      document.getElementById('new-session-btn').addEventListener('click', () => {
+        const session = createSession();
+        sessions.push(session);
+        selectedSessionId = session.id;
+        saveState();
+        renderSessionSelect();
+        updateTimers();
+      });
+      document.getElementById('session-select').addEventListener('change', (e) => {
+        selectedSessionId = e.target.value;
+        saveState();
+        updateTimers();
+        renderSessionSelect();
+      });
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => switchView(btn.dataset.target));
+      });
+    }
+
+    function init() {
+      loadState();
+      bindEvents();
+      renderSessionSelect();
+      updateTimers();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
