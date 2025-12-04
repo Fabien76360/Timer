@@ -154,6 +154,61 @@
     .current-action { margin-top: 16px; font-size: 20px; letter-spacing: 1px; }
     .current-action span { display: inline-block; margin: 4px 8px; }
 
+    /* Event markers (name later) */
+    .event-panel {
+      margin-top: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+    .event-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .event-header .micro { font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+    .event-header .sub { font-size: 12px; color: #e0e8f0; }
+    .event-btn {
+      min-width: 150px;
+      min-height: 64px;
+      padding: 12px 14px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      background: rgba(95,169,255,0.2);
+      border: 2px solid var(--accent);
+      color: #e8f3ff;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+    .event-list {
+      margin-top: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: grid;
+      gap: 10px;
+      padding-right: 4px;
+    }
+    .event-item {
+      display: grid;
+      grid-template-columns: 80px 1fr 180px;
+      gap: 10px;
+      align-items: center;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .event-time {
+      font-family: "Courier New", monospace;
+      font-size: 18px;
+      letter-spacing: 1px;
+      color: #b7d7ff;
+      text-align: center;
+    }
+    .event-item select { min-width: 160px; }
+    .event-actions { margin-top: 10px; text-align: right; }
+
     .actions-row {
       display: flex;
       justify-content: center;
@@ -297,6 +352,21 @@
           <button class="big-btn quick" onclick="startNewAction('Motion', 'NVA', 'Motion')">Déplacement</button>
           <button class="big-btn quick" onclick="cancelLastAction()">Annuler dernière</button>
         </div>
+
+        <!-- Marquage rapide : nommer après le clic -->
+        <div class="event-panel">
+          <div class="event-header">
+            <div>
+              <div class="micro">Marquer sans interrompre</div>
+              <div class="sub">Cliquez, puis complétez le nom et le tag plus tard.</div>
+            </div>
+            <button class="event-btn" onclick="addEventMarker()">+ Étape</button>
+          </div>
+          <div class="event-list" id="eventList"></div>
+          <div class="event-actions">
+            <button class="small-btn" onclick="logEventMarkersToConsole()">JSON → Console</button>
+          </div>
+        </div>
       </section>
 
       <!-- Analyse View -->
@@ -376,6 +446,7 @@
       renderSessionList();
       renderSessionInfo();
       renderCaptureView();
+      renderEventMarkers();
       renderAnalysisTable();
       updateSummary();
     }
@@ -397,7 +468,8 @@
         observer: '',
         startedAt: null,
         endedAt: null,
-        actions: []
+        actions: [],
+        eventMarkers: []
       };
     }
 
@@ -410,6 +482,7 @@
       renderSessionList();
       renderSessionInfo();
       renderCaptureView();
+      renderEventMarkers();
       renderAnalysisTable();
       updateSummary();
     }
@@ -424,6 +497,7 @@
       selectedSessionId = copy.id;
       saveSessions();
       renderSessionList();
+      renderEventMarkers();
     }
 
     function renameSession() {
@@ -452,6 +526,7 @@
       renderSessionList();
       renderSessionInfo();
       renderCaptureView();
+      renderEventMarkers();
       renderAnalysisTable();
       updateSummary();
     }
@@ -462,6 +537,7 @@
       renderSessionList();
       renderSessionInfo();
       renderCaptureView();
+      renderEventMarkers();
       renderAnalysisTable();
       updateSummary();
     }
@@ -624,6 +700,79 @@
       document.getElementById('currentActionTimer').innerText = formatDuration(seconds);
     }
 
+    /* ---------------------------------------------
+       Event markers: capture now, name later
+    --------------------------------------------- */
+    function ensureEventMarkers(session) {
+      if (!session.eventMarkers) session.eventMarkers = [];
+      return session.eventMarkers;
+    }
+
+    // Add a marker without interrupting the running timer
+    function addEventMarker() {
+      const session = getCurrentSession();
+      if (!session || !session.startedAt) return;
+      const now = Date.now();
+      const elapsedSeconds = (now - session.startedAt) / 1000;
+      const marker = {
+        timestamp: parseFloat(elapsedSeconds.toFixed(2)),
+        formatted: formatDuration(Math.floor(elapsedSeconds)),
+        name: '',
+        tag: ''
+      };
+      const markers = ensureEventMarkers(session);
+      markers.push(marker);
+      saveSessions();
+      renderEventMarkers(true);
+    }
+
+    function updateEventMarkerField(index, field, value) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const markers = ensureEventMarkers(session);
+      if (!markers[index]) return;
+      markers[index][field] = value;
+      saveSessions();
+    }
+
+    function renderEventMarkers(shouldScroll) {
+      const session = getCurrentSession();
+      const list = document.getElementById('eventList');
+      if (!list) return;
+      list.innerHTML = '';
+      if (!session) return;
+      const markers = ensureEventMarkers(session);
+      markers.forEach((marker, idx) => {
+        const row = document.createElement('div');
+        row.className = 'event-item';
+        row.innerHTML = `
+          <div class="event-time">${marker.formatted}</div>
+          <input type="text" aria-label="Nom de l'étape" placeholder="Nom (optionnel)" value="${marker.name || ''}" data-index="${idx}" data-field="name">
+          <select aria-label="Tag rapide" data-index="${idx}" data-field="tag">
+            ${['', 'Attente', 'Mouvement', 'Actif/Travail', 'Recherche', 'Réglage'].map(tag => `<option value="${tag}" ${marker.tag === tag ? 'selected' : ''}>${tag || 'Tag'}</option>`).join('')}
+          </select>
+        `;
+        list.appendChild(row);
+      });
+      list.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', (e) => {
+          const idx = Number(e.target.getAttribute('data-index'));
+          const field = e.target.getAttribute('data-field');
+          updateEventMarkerField(idx, field, e.target.value);
+        });
+      });
+      if (shouldScroll) {
+        list.scrollTop = list.scrollHeight;
+      }
+    }
+
+    function logEventMarkersToConsole() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const markers = ensureEventMarkers(session);
+      console.log('Event markers JSON:', JSON.stringify(markers, null, 2));
+    }
+
     // Rendering
     function renderSessionList() {
       const list = document.getElementById('sessionList');
@@ -646,6 +795,7 @@
       document.getElementById('sessionPO').value = session.po || '';
       document.getElementById('sessionObserver').value = session.observer || '';
       renderCaptureView();
+      renderEventMarkers();
       renderAnalysisTable();
       updateSummary();
     }
