@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Lean Timer - Chrono ligne de production</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --primary: #1f6feb;
+    --primary-dark: #154c9c;
+    --accent: #0d9c6c;
+    --danger: #c0392b;
+    --text: #1f2933;
+    --muted: #5f6b7a;
+    --card: #ffffff;
+    --border: #d8e1ea;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  h1 { margin: 0 0 8px 0; font-size: 22px; }
+  .grid {
+    display: grid;
+    gap: 12px;
+  }
+  .grid-top {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  }
+  .flex {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .actions-panel {
+    display: grid;
+    grid-template-columns: 1.1fr 1.9fr;
+    gap: 14px;
+  }
+  @media (max-width: 900px) {
+    .actions-panel { grid-template-columns: 1fr; }
+  }
+  .big-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    transition: transform 0.05s ease, box-shadow 0.1s ease;
+  }
+  .big-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .start { background: var(--primary); }
+  .start:active { background: var(--primary-dark); }
+  .stop { background: var(--danger); }
+  .secondary { background: var(--accent); }
+  .ghost { background: #8893a4; }
+  .timer {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .current-action {
+    background: #eef4ff;
+    border-left: 4px solid var(--primary);
+    padding: 12px;
+    border-radius: 8px;
+  }
+  .chip { padding: 6px 10px; border-radius: 999px; background: #e4ebf5; color: var(--muted); font-weight: 600; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 8px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  th { text-align: left; background: #f3f6fb; position: sticky; top: 0; z-index: 5; }
+  tbody tr:hover { background: #f8fbff; }
+  .table-wrapper { max-height: 450px; overflow: auto; }
+  .summary { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  .summary .item { background: #eef2f7; padding: 10px; border-radius: 8px; }
+  .mini-bars { display: flex; height: 18px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 8px; }
+  .bar-va { background: var(--accent); }
+  .bar-nva { background: var(--danger); }
+  .session-row { align-items: flex-end; }
+  .small-btn { padding: 8px 10px; border: 1px solid var(--border); background: #fff; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .small-btn.danger { border-color: var(--danger); color: var(--danger); }
+  .action-types { display: flex; flex-wrap: wrap; gap: 8px; }
+  .action-type-btn { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-weight: 600; }
+  .action-type-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .footer-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .editable-input { width: 100%; border: 1px solid transparent; background: transparent; padding: 6px; border-radius: 6px; }
+  .editable-input:focus { outline: 2px solid var(--primary); background: #fff; border-color: var(--primary); }
+</style>
+</head>
+<body>
+<header class="card">
+  <h1>Lean Timer – Chronométrage ligne de production</h1>
+  <div class="grid grid-top session-row">
+    <div>
+      <label>Session</label>
+      <div class="flex" style="gap:8px;">
+        <select id="sessionSelect"></select>
+        <button class="small-btn" id="newSessionBtn">Nouvelle</button>
+        <button class="small-btn" id="duplicateSessionBtn">Dupliquer</button>
+        <button class="small-btn" id="renameSessionBtn">Renommer</button>
+        <button class="small-btn danger" id="deleteSessionBtn">Supprimer</button>
+      </div>
+    </div>
+    <div>
+      <label>Date</label>
+      <input type="date" id="dateInput">
+    </div>
+    <div>
+      <label>Ligne</label>
+      <input type="text" id="lineInput" placeholder="Ligne...">
+    </div>
+    <div>
+      <label>PO</label>
+      <input type="text" id="poInput" placeholder="Numéro ou nom de PO">
+    </div>
+    <div>
+      <label>Observateur</label>
+      <input type="text" id="observerInput" placeholder="Votre nom">
+    </div>
+    <div>
+      <label>&nbsp;</label>
+      <button class="small-btn" id="saveMetaBtn">Sauvegarder métadonnées</button>
+    </div>
+  </div>
+</header>
+
+<main style="padding:14px;">
+  <div class="actions-panel">
+    <section class="card">
+      <div class="flex" style="justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size:14px; color:var(--muted);">Chrono global</div>
+          <div class="timer" id="globalTimer">00:00</div>
+        </div>
+        <div class="chip" id="statusChip">Arrêté</div>
+      </div>
+      <div class="current-action" id="currentActionBox" style="margin-top:10px;">
+        <div style="font-weight:700;" id="currentActionName">Aucune action en cours</div>
+        <div style="font-size:13px; color:var(--muted);">Catégorie: <span id="currentActionCategory">-</span> • Durée: <span id="currentActionDuration">00:00</span></div>
+      </div>
+
+      <div class="flex" style="margin-top:12px; gap:10px;">
+        <button class="big-btn start" id="startBtn">Démarrer l'étude</button>
+        <button class="big-btn secondary" id="newActionBtn">Nouvelle action libre</button>
+      </div>
+      <div class="flex" style="margin-top:8px; gap:10px;">
+        <button class="big-btn ghost" id="stopBtn">Arrêter l'étude</button>
+        <button class="big-btn ghost" id="undoBtn">Annuler dernière action</button>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div style="font-weight:700; margin-bottom:6px;">Types d'actions (cliquez pour enchaîner)</div>
+        <div class="action-types" id="actionTypes"></div>
+        <div class="footer-note">Chaque clic clôture l'action en cours et démarre la suivante.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Nom</th>
+              <th>Catégorie</th>
+              <th>Gaspillage</th>
+              <th>Poste</th>
+              <th>Durée</th>
+              <th>Commentaire</th>
+            </tr>
+          </thead>
+          <tbody id="actionsTable"></tbody>
+        </table>
+      </div>
+      <div class="summary" id="summaryCards"></div>
+      <div style="margin-top:10px;" class="flex">
+        <div style="flex:1;">
+          <div style="font-weight:700;">Répartition VA / NVA</div>
+          <div class="mini-bars" id="miniBars">
+            <div class="bar-va" style="width:50%"></div>
+            <div class="bar-nva" style="width:50%"></div>
+          </div>
+          <div style="font-size:13px; color:var(--muted); margin-top:4px;" id="barLegend">VA 50% / NVA 50%</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:700;">Observations Lean</div>
+          <div id="leanObservation" style="margin-top:6px; color:var(--text); font-size:14px;">-</div>
+        </div>
+        <div>
+          <button class="small-btn" id="exportBtn">Exporter en CSV</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  // ------ Data structures ------
+  const STORAGE_KEY = 'leanTimerSessions';
+  const DEFAULT_TYPES = ['Préparation', 'Réglage', 'Attente', 'Déplacement', 'Production', 'Contrôle'];
+  let sessions = loadSessions();
+  let activeSessionId = null;
+  let globalTimerInterval = null;
+  let actionTimerInterval = null;
+  let startTimestamp = null;
+
+  // ------ Helpers ------
+  function loadSessions() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function persistSessions() { localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)); }
+  function generateId() { return 'sess-' + Math.random().toString(36).slice(2, 9); }
+  function formatTime(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+    const s = String(totalSeconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+  function formatTimestamp(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleTimeString('fr-FR');
+  }
+  function getActiveSession() { return sessions.find(s => s.id === activeSessionId); }
+
+  // ------ Session management ------
+  function initSessions() {
+    if (sessions.length === 0) {
+      const today = new Date().toISOString().slice(0,10);
+      const newSess = { id: generateId(), name: 'Session 1', meta: { date: today, line: '', po: '', observer: '' }, actions: [], startedAt: null, endedAt: null };
+      sessions.push(newSess);
+      activeSessionId = newSess.id;
+      persistSessions();
+    } else {
+      activeSessionId = sessions[0].id;
+    }
+    refreshSessionSelect();
+    loadSessionToUI(activeSessionId);
+  }
+  function refreshSessionSelect() {
+    const select = document.getElementById('sessionSelect');
+    select.innerHTML = '';
+    sessions.forEach(sess => {
+      const opt = document.createElement('option');
+      opt.value = sess.id; opt.textContent = sess.name;
+      select.appendChild(opt);
+    });
+    select.value = activeSessionId;
+  }
+  function loadSessionToUI(id) {
+    activeSessionId = id;
+    const sess = getActiveSession();
+    if (!sess) return;
+    document.getElementById('dateInput').value = sess.meta.date || new Date().toISOString().slice(0,10);
+    document.getElementById('lineInput').value = sess.meta.line || '';
+    document.getElementById('poInput').value = sess.meta.po || '';
+    document.getElementById('observerInput').value = sess.meta.observer || '';
+    startTimestamp = sess.startedAt;
+    stopTimers();
+    renderActions();
+    updateStatus();
+  }
+  function saveMeta() {
+    const sess = getActiveSession();
+    if (!sess) return;
+    sess.meta = {
+      date: document.getElementById('dateInput').value || new Date().toISOString().slice(0,10),
+      line: document.getElementById('lineInput').value,
+      po: document.getElementById('poInput').value,
+      observer: document.getElementById('observerInput').value,
+    };
+    persistSessions();
+    refreshSessionSelect();
+  }
+  function createSession() {
+    const name = prompt('Nom de la nouvelle session ?', `Session ${sessions.length + 1}`);
+    if (!name) return;
+    const today = new Date().toISOString().slice(0,10);
+    const sess = { id: generateId(), name, meta: { date: today, line: '', po: '', observer: '' }, actions: [], startedAt: null, endedAt: null };
+    sessions.push(sess);
+    activeSessionId = sess.id;
+    persistSessions();
+    refreshSessionSelect();
+    loadSessionToUI(sess.id);
+  }
+  function renameSession() {
+    const sess = getActiveSession();
+    if (!sess) return;
+    const name = prompt('Nouveau nom de session :', sess.name);
+    if (!name) return;
+    sess.name = name;
+    persistSessions();
+    refreshSessionSelect();
+  }
+  function duplicateSession() {
+    const sess = getActiveSession();
+    if (!sess) return;
+    const copy = JSON.parse(JSON.stringify(sess));
+    copy.id = generateId();
+    copy.name = sess.name + ' (copie)';
+    sessions.push(copy);
+    activeSessionId = copy.id;
+    persistSessions();
+    refreshSessionSelect();
+    loadSessionToUI(copy.id);
+  }
+  function deleteSession() {
+    if (!confirm('Supprimer la session ?')) return;
+    sessions = sessions.filter(s => s.id !== activeSessionId);
+    if (sessions.length === 0) {
+      sessions.push({ id: generateId(), name: 'Session 1', meta: { date: new Date().toISOString().slice(0,10), line: '', po: '', observer: '' }, actions: [], startedAt: null, endedAt: null });
+    }
+    activeSessionId = sessions[0].id;
+    persistSessions();
+    refreshSessionSelect();
+    loadSessionToUI(activeSessionId);
+  }
+
+  // ------ Chrono logic ------
+  function startStudy(defaultName) {
+    const sess = getActiveSession();
+    if (!sess) return;
+    if (sess.actions.length === 0) {
+      sess.startedAt = Date.now();
+      startTimestamp = sess.startedAt;
+    }
+    const name = defaultName || prompt('Nom de l\'action de départ ?', DEFAULT_TYPES[0]) || DEFAULT_TYPES[0];
+    startNewAction(name);
+    startTimers();
+    sess.endedAt = null;
+    persistSessions();
+    updateStatus();
+  }
+  function stopStudy() {
+    const sess = getActiveSession();
+    if (!sess) return;
+    closeCurrentAction();
+    sess.endedAt = Date.now();
+    stopTimers();
+    persistSessions();
+    updateStatus();
+  }
+  function startNewAction(name, category='VA') {
+    const sess = getActiveSession();
+    if (!sess) return;
+    closeCurrentAction();
+    const now = Date.now();
+    if (!sess.startedAt) { sess.startedAt = now; startTimestamp = now; }
+    const newAction = {
+      order: sess.actions.length + 1,
+      name,
+      category,
+      waste: '',
+      station: '',
+      comment: '',
+      start: now,
+      end: null,
+      duration: 0
+    };
+    sess.actions.push(newAction);
+    persistSessions();
+    renderActions();
+    updateCurrentActionUI();
+    startTimers();
+  }
+  function closeCurrentAction() {
+    const sess = getActiveSession();
+    if (!sess) return;
+    const current = sess.actions[sess.actions.length - 1];
+    if (current && !current.end) {
+      current.end = Date.now();
+      current.duration = current.end - current.start;
+    }
+  }
+  function undoLastAction() {
+    const sess = getActiveSession();
+    if (!sess || sess.actions.length === 0) return;
+    sess.actions.pop();
+    persistSessions();
+    renderActions();
+    updateCurrentActionUI();
+  }
+  function stopTimers() {
+    if (globalTimerInterval) clearInterval(globalTimerInterval);
+    if (actionTimerInterval) clearInterval(actionTimerInterval);
+    globalTimerInterval = null; actionTimerInterval = null;
+  }
+  function startTimers() {
+    stopTimers();
+    const sess = getActiveSession();
+    if (!sess || !sess.startedAt) return;
+    globalTimerInterval = setInterval(updateGlobalTimer, 1000);
+    actionTimerInterval = setInterval(updateCurrentActionUI, 1000);
+    updateGlobalTimer();
+    updateCurrentActionUI();
+  }
+  function updateGlobalTimer() {
+    const sess = getActiveSession();
+    if (!sess || !sess.startedAt) return;
+    const endPoint = sess.endedAt || Date.now();
+    const elapsed = endPoint - sess.startedAt;
+    document.getElementById('globalTimer').textContent = formatTime(elapsed);
+  }
+  function updateCurrentActionUI() {
+    const sess = getActiveSession();
+    const box = document.getElementById('currentActionBox');
+    const nameEl = document.getElementById('currentActionName');
+    const catEl = document.getElementById('currentActionCategory');
+    const durEl = document.getElementById('currentActionDuration');
+    const current = sess ? sess.actions[sess.actions.length - 1] : null;
+    if (current) {
+      const now = current.end ? current.end : Date.now();
+      const duration = now - current.start;
+      nameEl.textContent = current.name || '-';
+      catEl.textContent = current.category || '-';
+      durEl.textContent = formatTime(duration);
+    } else {
+      nameEl.textContent = 'Aucune action en cours';
+      catEl.textContent = '-';
+      durEl.textContent = '00:00';
+    }
+  }
+  function updateStatus() {
+    const sess = getActiveSession();
+    const chip = document.getElementById('statusChip');
+    if (sess && sess.actions.length && !sess.endedAt) {
+      chip.textContent = 'En cours';
+      chip.style.background = '#e0f2ff';
+      startTimers();
+    } else {
+      chip.textContent = 'Arrêté';
+      chip.style.background = '#f5d7d7';
+      stopTimers();
+    }
+  }
+
+  // ------ Rendering ------
+  function renderActionTypes() {
+    const container = document.getElementById('actionTypes');
+    container.innerHTML = '';
+    DEFAULT_TYPES.forEach(type => {
+      const btn = document.createElement('button');
+      btn.className = 'action-type-btn';
+      btn.textContent = type;
+      btn.onclick = () => startNewAction(type);
+      container.appendChild(btn);
+    });
+  }
+  function renderActions() {
+    const tbody = document.getElementById('actionsTable');
+    tbody.innerHTML = '';
+    const sess = getActiveSession();
+    if (!sess) return;
+    sess.actions.forEach((act, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td><input class="editable-input" data-field="name" data-idx="${idx}" value="${act.name || ''}"></td>
+        <td>
+          <select class="editable-input" data-field="category" data-idx="${idx}">
+            <option value="VA" ${act.category === 'VA' ? 'selected' : ''}>VA</option>
+            <option value="NVA" ${act.category === 'NVA' ? 'selected' : ''}>NVA</option>
+          </select>
+        </td>
+        <td>
+          <select class="editable-input" data-field="waste" data-idx="${idx}">
+            <option value="" ${!act.waste ? 'selected' : ''}>-</option>
+            <option value="Attente" ${act.waste === 'Attente' ? 'selected' : ''}>Attente</option>
+            <option value="Déplacement" ${act.waste === 'Déplacement' ? 'selected' : ''}>Déplacement</option>
+            <option value="Surproduction" ${act.waste === 'Surproduction' ? 'selected' : ''}>Surproduction</option>
+            <option value="Sur-process" ${act.waste === 'Sur-process' ? 'selected' : ''}>Sur-process</option>
+            <option value="Défaut" ${act.waste === 'Défaut' ? 'selected' : ''}>Défaut</option>
+            <option value="Stock" ${act.waste === 'Stock' ? 'selected' : ''}>Stock</option>
+            <option value="Mouvement" ${act.waste === 'Mouvement' ? 'selected' : ''}>Mouvement</option>
+            <option value="Autre" ${act.waste === 'Autre' ? 'selected' : ''}>Autre</option>
+          </select>
+        </td>
+        <td><input class="editable-input" data-field="station" data-idx="${idx}" value="${act.station || ''}"></td>
+        <td>${formatTime(act.duration || 0)}</td>
+        <td><input class="editable-input" data-field="comment" data-idx="${idx}" value="${act.comment || ''}"></td>
+      `;
+      tbody.appendChild(tr);
+    });
+    attachEditors();
+    renderSummary();
+    updateCurrentActionUI();
+  }
+  function attachEditors() {
+    document.querySelectorAll('.editable-input').forEach(el => {
+      el.onchange = () => {
+        const idx = Number(el.dataset.idx);
+        const field = el.dataset.field;
+        const sess = getActiveSession();
+        if (!sess || !sess.actions[idx]) return;
+        sess.actions[idx][field] = el.value;
+        persistSessions();
+        renderSummary();
+        updateCurrentActionUI();
+      };
+    });
+  }
+  function renderSummary() {
+    const sess = getActiveSession();
+    if (!sess) return;
+    let totalVA = 0, totalNVA = 0;
+    sess.actions.forEach(act => {
+      if (act.duration && act.category === 'VA') totalVA += act.duration;
+      if (act.duration && act.category === 'NVA') totalNVA += act.duration;
+    });
+    const total = totalVA + totalNVA;
+    const summary = document.getElementById('summaryCards');
+    summary.innerHTML = '';
+    const cards = [
+      { label: 'Durée totale', value: formatTime(total) },
+      { label: 'Temps VA', value: formatTime(totalVA) },
+      { label: 'Temps NVA', value: formatTime(totalNVA) },
+      { label: '% VA', value: total ? Math.round(totalVA / total * 100) + '%' : '0%' },
+      { label: '% NVA', value: total ? Math.round(totalNVA / total * 100) + '%' : '0%' }
+    ];
+    cards.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `<div style="color:var(--muted); font-size:13px;">${c.label}</div><div style="font-weight:700; font-size:18px;">${c.value}</div>`;
+      summary.appendChild(div);
+    });
+    renderBars(totalVA, totalNVA);
+    renderObservation(totalVA, totalNVA);
+  }
+  function renderBars(va, nva) {
+    const total = va + nva;
+    const vaPct = total ? Math.round((va/total)*100) : 0;
+    const nvaPct = 100 - vaPct;
+    const bars = document.getElementById('miniBars');
+    bars.innerHTML = '';
+    const barVA = document.createElement('div');
+    barVA.className = 'bar-va';
+    barVA.style.width = vaPct + '%';
+    const barNVA = document.createElement('div');
+    barNVA.className = 'bar-nva';
+    barNVA.style.width = nvaPct + '%';
+    bars.appendChild(barVA); bars.appendChild(barNVA);
+    document.getElementById('barLegend').textContent = `VA ${vaPct}% / NVA ${nvaPct}%`;
+  }
+  function renderObservation(va, nva) {
+    const total = va + nva;
+    const nvaPct = total ? Math.round((nva/total)*100) : 0;
+    const obs = document.getElementById('leanObservation');
+    if (nvaPct > 40) {
+      obs.textContent = "La part de NVA est élevée. Investiguer en priorité les catégories d'actions à forte durée NVA (attentes, déplacements, réglages) et envisager des actions SMED / 5S / réorganisation poste.";
+    } else if (total === 0) {
+      obs.textContent = 'Aucune donnée pour le moment.';
+    } else {
+      obs.textContent = 'Bonne répartition. Continuer à réduire les temps NVA et standardiser les bonnes pratiques.';
+    }
+  }
+
+  // ------ Export ------
+  function exportCSV() {
+    const sess = getActiveSession();
+    if (!sess) return;
+    const rows = [];
+    rows.push(['SessionId','Date','Ligne','PO','Observateur','NumAction','NomAction','CategorieVA_NVA','TypeGaspillage','Poste','HeureDebut','HeureFin','DureeSecondes','Commentaire']);
+    sess.actions.forEach((act, idx) => {
+      const durationSec = act.duration ? Math.round(act.duration/1000) : 0;
+      rows.push([
+        sess.id,
+        sess.meta.date || '',
+        sess.meta.line || '',
+        sess.meta.po || '',
+        sess.meta.observer || '',
+        idx + 1,
+        act.name || '',
+        act.category || '',
+        act.waste || '',
+        act.station || '',
+        formatTimestamp(act.start),
+        formatTimestamp(act.end),
+        durationSec,
+        act.comment || ''
+      ]);
+    });
+    const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const name = (sess.name || 'session') + '.csv';
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ------ Event bindings ------
+  document.getElementById('newSessionBtn').onclick = createSession;
+  document.getElementById('duplicateSessionBtn').onclick = duplicateSession;
+  document.getElementById('renameSessionBtn').onclick = renameSession;
+  document.getElementById('deleteSessionBtn').onclick = deleteSession;
+  document.getElementById('sessionSelect').onchange = (e) => { loadSessionToUI(e.target.value); };
+  document.getElementById('saveMetaBtn').onclick = saveMeta;
+  document.getElementById('startBtn').onclick = () => startStudy();
+  document.getElementById('stopBtn').onclick = stopStudy;
+  document.getElementById('newActionBtn').onclick = () => {
+    const name = prompt('Nom de la nouvelle action ?');
+    if (name) startNewAction(name);
+  };
+  document.getElementById('undoBtn').onclick = undoLastAction;
+  document.getElementById('exportBtn').onclick = exportCSV;
+
+  // ------ Init ------
+  document.getElementById('dateInput').value = new Date().toISOString().slice(0,10);
+  renderActionTypes();
+  initSessions();
+</script>
+</body>
+</html>
