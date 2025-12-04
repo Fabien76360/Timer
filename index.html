@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lean Timer - Blueprint Factory</title>
+  <style>
+    /* ---------------------------------------------
+       Blueprint Factory Look & Feel
+    --------------------------------------------- */
+    :root {
+      --blueprint: #0B3A6A;
+      --blueprint-light: #155a9c;
+      --panel: rgba(17, 78, 140, 0.6);
+      --text: #f5f5f5;
+      --muted: #c8d5e3;
+      --accent: #5fa9ff;
+      --va: #1b8f3a;
+      --nva: #e67e22;
+      --stop: #b00020;
+      --shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background-color: var(--blueprint);
+      background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 32px 32px, 32px 32px;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: 0.5px; }
+    h1 { font-size: 24px; text-transform: uppercase; }
+
+    /* Layout */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: rgba(11,58,106,0.8);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .mode-toggle button {
+      margin-left: 8px;
+      min-width: 120px;
+      height: 44px;
+      border: 1px solid var(--muted);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      padding: 10px 16px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .mode-toggle button.active { background: var(--accent); color: #062346; border-color: var(--accent); font-weight: 700; }
+    .mode-toggle button:hover { transform: translateY(-1px); }
+
+    .container {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      padding: 16px 24px 32px 24px;
+    }
+
+    aside {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(2px);
+      position: sticky;
+      top: 96px;
+      align-self: start;
+    }
+
+    label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+    input, select, textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    textarea { min-height: 60px; resize: vertical; }
+
+    .section-card {
+      background: rgba(20, 60, 110, 0.75);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Session manager */
+    .session-list { max-height: 220px; overflow-y: auto; margin-top: 8px; }
+    .session-item {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+    }
+    .session-item.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .session-controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+    .small-btn {
+      padding: 8px 10px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .small-btn.danger { border-color: var(--stop); color: #ffdede; }
+
+    /* Capture view */
+    #captureView { text-align: center; }
+    .chrono-wrapper { margin: 24px 0; }
+    .global-timer {
+      font-family: "Courier New", monospace;
+      font-size: 64px;
+      letter-spacing: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      display: inline-block;
+      padding: 16px 28px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .current-action { margin-top: 16px; font-size: 20px; letter-spacing: 1px; }
+    .current-action span { display: inline-block; margin: 4px 8px; }
+
+    /* Event markers (name later) */
+    .event-panel {
+      margin-top: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+    .event-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .event-header .micro { font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+    .event-header .sub { font-size: 12px; color: #e0e8f0; }
+    .event-btn {
+      min-width: 150px;
+      min-height: 64px;
+      padding: 12px 14px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      background: rgba(95,169,255,0.2);
+      border: 2px solid var(--accent);
+      color: #e8f3ff;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+    .event-list {
+      margin-top: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: grid;
+      gap: 10px;
+      padding-right: 4px;
+    }
+    .event-item {
+      display: grid;
+      grid-template-columns: 80px 1fr 180px;
+      gap: 10px;
+      align-items: center;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .event-time {
+      font-family: "Courier New", monospace;
+      font-size: 18px;
+      letter-spacing: 1px;
+      color: #b7d7ff;
+      text-align: center;
+    }
+    .event-item select { min-width: 160px; }
+    .event-actions { margin-top: 10px; text-align: right; }
+
+    .actions-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .big-btn {
+      min-width: 170px;
+      min-height: 68px;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: var(--text);
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    .big-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,0.4); }
+    .big-btn.start { border-color: var(--accent); color: #e6f1ff; }
+    .big-btn.next { border-color: #7dc1ff; background: rgba(125,193,255,0.12); }
+    .big-btn.stop { border-color: var(--stop); color: #ffe3e3; background: rgba(176,0,32,0.12); }
+    .big-btn.quick { min-width: 140px; min-height: 52px; font-size: 14px; background: rgba(255,255,255,0.04); }
+
+    /* Analysis view */
+    #analyseView { display: none; }
+    .table-wrapper { overflow-x: auto; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid rgba(255,255,255,0.16); padding: 8px; text-align: left; }
+    th { background: rgba(255,255,255,0.08); letter-spacing: 1px; text-transform: uppercase; }
+    tr:nth-child(even) { background: rgba(255,255,255,0.04); }
+
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; margin-top: 16px; }
+    .summary-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px dashed rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .bar-container {
+      position: relative;
+      width: 100%;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.2);
+      margin-top: 6px;
+    }
+    .bar-va { background: var(--va); height: 100%; }
+    .bar-nva { background: var(--nva); height: 100%; }
+
+    .analysis-actions { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .export-btn { padding: 10px 14px; border: 1px solid var(--muted); background: rgba(255,255,255,0.05); color: var(--text); border-radius: 8px; cursor: pointer; }
+
+    .auto-note { margin-top: 12px; padding: 12px; border-left: 3px solid var(--accent); background: rgba(255,255,255,0.05); border-radius: 8px; }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  </style>
+</head>
+<body>
+  <!-- ---------------------------------------------
+       HEADER & MODE TOGGLE
+  --------------------------------------------- -->
+  <header>
+    <div>
+      <h1>Lean Timer · Blueprint Factory</h1>
+      <div style="font-size:12px; letter-spacing:1px; color: var(--muted);">Chronométrage séquentiel terrain & analyse Lean</div>
+    </div>
+    <div class="mode-toggle">
+      <button id="btnCapture" class="active" onclick="setMode('capture')">Capture</button>
+      <button id="btnAnalyse" onclick="setMode('analyse')">Analyse</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- ---------------------------------------------
+         SIDEBAR: SESSION MANAGEMENT & INFO
+    --------------------------------------------- -->
+    <aside>
+      <h3 style="margin-bottom:8px;">Sessions</h3>
+      <div class="session-controls">
+        <button class="small-btn" onclick="createNewSession()">Nouvelle</button>
+        <button class="small-btn" onclick="duplicateSession()">Dupliquer</button>
+        <button class="small-btn" onclick="renameSession()">Renommer</button>
+        <button class="small-btn danger" onclick="deleteSession()">Supprimer</button>
+      </div>
+      <div class="session-list" id="sessionList"></div>
+
+      <hr style="border-color: rgba(255,255,255,0.18); margin: 14px 0;">
+      <h3 style="margin-bottom:8px;">Informations session</h3>
+      <div>
+        <label for="sessionName">Nom</label>
+        <input id="sessionName" type="text" placeholder="Session" oninput="updateSessionField('name', this.value)">
+        <label for="sessionDate">Date</label>
+        <input id="sessionDate" type="date" oninput="updateSessionField('date', this.value)">
+        <label for="sessionLine">Ligne</label>
+        <input id="sessionLine" type="text" placeholder="Ligne" oninput="updateSessionField('line', this.value)">
+        <label for="sessionPO">PO / Ordre</label>
+        <input id="sessionPO" type="text" placeholder="Ordre" oninput="updateSessionField('po', this.value)">
+        <label for="sessionObserver">Observateur</label>
+        <input id="sessionObserver" type="text" placeholder="Nom" oninput="updateSessionField('observer', this.value)">
+      </div>
+    </aside>
+
+    <!-- ---------------------------------------------
+         MAIN CONTENT
+    --------------------------------------------- -->
+    <main>
+      <!-- Capture View -->
+      <section id="captureView" class="section-card">
+        <div class="flex-between">
+          <h2>Mode Capture</h2>
+          <div style="font-size:12px; color:var(--muted); letter-spacing:1px;">Cliquez rapidement, nommez plus tard.</div>
+        </div>
+        <div class="chrono-wrapper">
+          <div class="global-timer" id="globalTimer">00:00</div>
+          <div class="current-action">
+            <span id="currentActionName">Action -</span>
+            <span style="color: var(--accent);">⏱</span>
+            <span id="currentActionTimer">00:00</span>
+          </div>
+        </div>
+        <div class="actions-row">
+          <button class="big-btn start" onclick="startStudy()">Start / Resume</button>
+          <button class="big-btn next" onclick="startNewAction()">Next Step</button>
+          <button class="big-btn stop" onclick="stopStudy()">Stop</button>
+        </div>
+        <div class="actions-row" style="margin-top:12px;">
+          <button class="big-btn quick" onclick="startNewAction('Waiting', 'NVA', 'Waiting')">Attente</button>
+          <button class="big-btn quick" onclick="startNewAction('Motion', 'NVA', 'Motion')">Déplacement</button>
+          <button class="big-btn quick" onclick="cancelLastAction()">Annuler dernière</button>
+        </div>
+
+        <!-- Marquage rapide : nommer après le clic -->
+        <div class="event-panel">
+          <div class="event-header">
+            <div>
+              <div class="micro">Marquer sans interrompre</div>
+              <div class="sub">Cliquez, puis complétez le nom et le tag plus tard.</div>
+            </div>
+            <button class="event-btn" onclick="addEventMarker()">+ Étape</button>
+          </div>
+          <div class="event-list" id="eventList"></div>
+          <div class="event-actions">
+            <button class="small-btn" onclick="logEventMarkersToConsole()">JSON → Console</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analyse View -->
+      <section id="analyseView" class="section-card">
+        <div class="flex-between">
+          <h2>Mode Analyse</h2>
+          <div style="font-size:12px; color:var(--muted); letter-spacing:1px;">Complétez, classez, exportez.</div>
+        </div>
+        <div class="analysis-actions">
+          <button class="export-btn" onclick="exportSessionToCSV()">Exporter CSV</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Nom de l'action</th>
+                <th>Durée</th>
+                <th>Category</th>
+                <th>Waste</th>
+                <th>Station</th>
+                <th>Comment</th>
+              </tr>
+            </thead>
+            <tbody id="analysisTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="summary" id="summaryCards"></div>
+        <div style="margin-top:12px;">
+          <div>Répartition VA / NVA</div>
+          <div class="bar-container">
+            <div class="bar-va" id="barVA" style="width: 50%;"></div>
+            <div class="bar-nva" id="barNVA" style="width: 50%;"></div>
+          </div>
+        </div>
+        <div class="auto-note" id="autoNote"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ---------------------------------------------
+       CORE LOGIC
+  --------------------------------------------- -->
+  <script>
+    // Global state
+    let sessions = [];
+    let selectedSessionId = null;
+    let currentMode = 'capture';
+    let globalTimerInterval = null;
+    let actionTimerInterval = null;
+
+    // Utility: generate unique ID
+    function generateId() {
+      return 'sess-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+    }
+
+    // Utility: format seconds to mm:ss
+    function formatDuration(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    // Load sessions from localStorage
+    function loadSessions() {
+      const data = localStorage.getItem('leanTimerSessions');
+      sessions = data ? JSON.parse(data) : [];
+      if (sessions.length === 0) {
+        const defaultSession = createSessionObject('Nouvelle étude');
+        sessions.push(defaultSession);
+        selectedSessionId = defaultSession.id;
+        saveSessions();
+      } else if (!selectedSessionId) {
+        selectedSessionId = sessions[0].id;
+      }
+      renderSessionList();
+      renderSessionInfo();
+      renderCaptureView();
+      renderEventMarkers();
+      renderAnalysisTable();
+      updateSummary();
+    }
+
+    // Save sessions to localStorage
+    function saveSessions() {
+      localStorage.setItem('leanTimerSessions', JSON.stringify(sessions));
+    }
+
+    // Create base session object
+    function createSessionObject(name) {
+      const today = new Date().toISOString().split('T')[0];
+      return {
+        id: generateId(),
+        name: name || 'Session',
+        date: today,
+        line: '',
+        po: '',
+        observer: '',
+        startedAt: null,
+        endedAt: null,
+        actions: [],
+        eventMarkers: []
+      };
+    }
+
+    // Session CRUD
+    function createNewSession() {
+      const newSession = createSessionObject('Nouvelle étude');
+      sessions.push(newSession);
+      selectedSessionId = newSession.id;
+      saveSessions();
+      renderSessionList();
+      renderSessionInfo();
+      renderCaptureView();
+      renderEventMarkers();
+      renderAnalysisTable();
+      updateSummary();
+    }
+
+    function duplicateSession() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const copy = JSON.parse(JSON.stringify(session));
+      copy.id = generateId();
+      copy.name = session.name + ' (copie)';
+      sessions.push(copy);
+      selectedSessionId = copy.id;
+      saveSessions();
+      renderSessionList();
+      renderEventMarkers();
+    }
+
+    function renameSession() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const newName = prompt('Nouveau nom de session:', session.name);
+      if (newName) {
+        session.name = newName;
+        saveSessions();
+        renderSessionList();
+        renderSessionInfo();
+      }
+    }
+
+    function deleteSession() {
+      if (!selectedSessionId) return;
+      if (!confirm('Supprimer la session sélectionnée ?')) return;
+      sessions = sessions.filter(s => s.id !== selectedSessionId);
+      selectedSessionId = sessions.length ? sessions[0].id : null;
+      if (!selectedSessionId) {
+        const defaultSession = createSessionObject('Nouvelle étude');
+        sessions.push(defaultSession);
+        selectedSessionId = defaultSession.id;
+      }
+      saveSessions();
+      renderSessionList();
+      renderSessionInfo();
+      renderCaptureView();
+      renderEventMarkers();
+      renderAnalysisTable();
+      updateSummary();
+    }
+
+    function selectSession(id) {
+      selectedSessionId = id;
+      stopTimers();
+      renderSessionList();
+      renderSessionInfo();
+      renderCaptureView();
+      renderEventMarkers();
+      renderAnalysisTable();
+      updateSummary();
+    }
+
+    // Helpers
+    function getCurrentSession() { return sessions.find(s => s.id === selectedSessionId); }
+
+    function updateSessionField(field, value) {
+      const session = getCurrentSession();
+      if (!session) return;
+      session[field] = value;
+      saveSessions();
+      renderSessionList();
+    }
+
+    // Mode management
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('captureView').style.display = mode === 'capture' ? 'block' : 'none';
+      document.getElementById('analyseView').style.display = mode === 'analyse' ? 'block' : 'none';
+      document.getElementById('btnCapture').classList.toggle('active', mode === 'capture');
+      document.getElementById('btnAnalyse').classList.toggle('active', mode === 'analyse');
+    }
+
+    // Chrono logic
+    function startStudy() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      if (!session.startedAt) session.startedAt = now;
+      session.endedAt = null;
+      if (!session.actions.length) {
+        startNewAction('Action 1');
+        return;
+      }
+      // resume running action if ended
+      const currentAction = session.actions[session.actions.length - 1];
+      if (currentAction.end) {
+        const carried = currentAction.duration || Math.max(0, Math.round((currentAction.end - currentAction.start) / 1000));
+        currentAction.start = now - carried;
+        currentAction.end = null;
+        currentAction.duration = carried;
+      }
+      saveSessions();
+      startTimers();
+    }
+
+    function startNewAction(name, category, waste) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      if (!session.startedAt) session.startedAt = now;
+
+      // close current action
+      if (session.actions.length) {
+        const last = session.actions[session.actions.length - 1];
+        if (!last.end) {
+          last.end = now;
+          last.duration = Math.max(0, Math.round((last.end - last.start) / 1000));
+        }
+      }
+
+      const order = session.actions.length + 1;
+      const actionName = name || `Action ${order}`;
+      const newAction = {
+        order,
+        name: actionName,
+        category: category || 'Unclassified',
+        waste: waste || '',
+        station: '',
+        comment: '',
+        start: now,
+        end: null,
+        duration: 0
+      };
+      session.actions.push(newAction);
+      session.endedAt = null;
+      saveSessions();
+      startTimers();
+      renderCaptureView();
+      renderAnalysisTable();
+    }
+
+    function stopStudy() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const now = Date.now();
+      if (session.actions.length) {
+        const last = session.actions[session.actions.length - 1];
+        if (!last.end) {
+          last.end = now;
+          last.duration = Math.max(0, Math.round((last.end - last.start) / 1000));
+        }
+      }
+      session.endedAt = now;
+      saveSessions();
+      stopTimers();
+      renderCaptureView();
+      renderAnalysisTable();
+      updateSummary();
+    }
+
+    function cancelLastAction() {
+      const session = getCurrentSession();
+      if (!session || !session.actions.length) return;
+      const removed = session.actions.pop();
+      if (removed && !removed.end) {
+        const prev = session.actions[session.actions.length - 1];
+        if (prev) {
+          const carried = prev.duration || Math.max(0, prev.end ? Math.round((prev.end - prev.start) / 1000) : 0);
+          prev.end = null; // reopen previous action
+          prev.start = Date.now() - carried;
+          prev.duration = carried;
+        }
+      }
+      saveSessions();
+      renderCaptureView();
+      renderAnalysisTable();
+      updateSummary();
+      startTimers();
+    }
+
+    function stopTimers() {
+      if (globalTimerInterval) clearInterval(globalTimerInterval);
+      if (actionTimerInterval) clearInterval(actionTimerInterval);
+      globalTimerInterval = null;
+      actionTimerInterval = null;
+    }
+
+    function startTimers() {
+      stopTimers();
+      globalTimerInterval = setInterval(updateGlobalTimer, 500);
+      actionTimerInterval = setInterval(updateActionTimer, 500);
+      updateGlobalTimer();
+      updateActionTimer();
+    }
+
+    function updateGlobalTimer() {
+      const session = getCurrentSession();
+      if (!session || !session.startedAt) {
+        document.getElementById('globalTimer').innerText = '00:00';
+        return;
+      }
+      const endRef = session.endedAt || Date.now();
+      const totalSeconds = Math.max(0, Math.round((endRef - session.startedAt) / 1000));
+      document.getElementById('globalTimer').innerText = formatDuration(totalSeconds);
+    }
+
+    function updateActionTimer() {
+      const session = getCurrentSession();
+      if (!session || !session.actions.length) {
+        document.getElementById('currentActionName').innerText = 'Aucune action';
+        document.getElementById('currentActionTimer').innerText = '00:00';
+        return;
+      }
+      const action = session.actions[session.actions.length - 1];
+      const endRef = action.end || Date.now();
+      const seconds = Math.max(0, Math.round((endRef - action.start) / 1000));
+      document.getElementById('currentActionName').innerText = action.name;
+      document.getElementById('currentActionTimer').innerText = formatDuration(seconds);
+    }
+
+    /* ---------------------------------------------
+       Event markers: capture now, name later
+    --------------------------------------------- */
+    function ensureEventMarkers(session) {
+      if (!session.eventMarkers) session.eventMarkers = [];
+      return session.eventMarkers;
+    }
+
+    // Add a marker without interrupting the running timer
+    function addEventMarker() {
+      const session = getCurrentSession();
+      if (!session || !session.startedAt) return;
+      const now = Date.now();
+      const elapsedSeconds = (now - session.startedAt) / 1000;
+      const marker = {
+        timestamp: parseFloat(elapsedSeconds.toFixed(2)),
+        formatted: formatDuration(Math.floor(elapsedSeconds)),
+        name: '',
+        tag: ''
+      };
+      const markers = ensureEventMarkers(session);
+      markers.push(marker);
+      saveSessions();
+      renderEventMarkers(true);
+    }
+
+    function updateEventMarkerField(index, field, value) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const markers = ensureEventMarkers(session);
+      if (!markers[index]) return;
+      markers[index][field] = value;
+      saveSessions();
+    }
+
+    function renderEventMarkers(shouldScroll) {
+      const session = getCurrentSession();
+      const list = document.getElementById('eventList');
+      if (!list) return;
+      list.innerHTML = '';
+      if (!session) return;
+      const markers = ensureEventMarkers(session);
+      markers.forEach((marker, idx) => {
+        const row = document.createElement('div');
+        row.className = 'event-item';
+        row.innerHTML = `
+          <div class="event-time">${marker.formatted}</div>
+          <input type="text" aria-label="Nom de l'étape" placeholder="Nom (optionnel)" value="${marker.name || ''}" data-index="${idx}" data-field="name">
+          <select aria-label="Tag rapide" data-index="${idx}" data-field="tag">
+            ${['', 'Attente', 'Mouvement', 'Actif/Travail', 'Recherche', 'Réglage'].map(tag => `<option value="${tag}" ${marker.tag === tag ? 'selected' : ''}>${tag || 'Tag'}</option>`).join('')}
+          </select>
+        `;
+        list.appendChild(row);
+      });
+      list.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', (e) => {
+          const idx = Number(e.target.getAttribute('data-index'));
+          const field = e.target.getAttribute('data-field');
+          updateEventMarkerField(idx, field, e.target.value);
+        });
+      });
+      if (shouldScroll) {
+        list.scrollTop = list.scrollHeight;
+      }
+    }
+
+    function logEventMarkersToConsole() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const markers = ensureEventMarkers(session);
+      console.log('Event markers JSON:', JSON.stringify(markers, null, 2));
+    }
+
+    // Rendering
+    function renderSessionList() {
+      const list = document.getElementById('sessionList');
+      list.innerHTML = '';
+      sessions.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'session-item' + (s.id === selectedSessionId ? ' active' : '');
+        div.innerHTML = `<strong>${s.name}</strong><br><span style="color:${'var(--muted)'}; font-size:12px;">${s.date || ''}</span>`;
+        div.onclick = () => selectSession(s.id);
+        list.appendChild(div);
+      });
+    }
+
+    function renderSessionInfo() {
+      const session = getCurrentSession();
+      if (!session) return;
+      document.getElementById('sessionName').value = session.name || '';
+      document.getElementById('sessionDate').value = session.date || '';
+      document.getElementById('sessionLine').value = session.line || '';
+      document.getElementById('sessionPO').value = session.po || '';
+      document.getElementById('sessionObserver').value = session.observer || '';
+      renderCaptureView();
+      renderEventMarkers();
+      renderAnalysisTable();
+      updateSummary();
+    }
+
+    function renderCaptureView() {
+      const session = getCurrentSession();
+      if (!session) return;
+      updateGlobalTimer();
+      updateActionTimer();
+    }
+
+    function renderAnalysisTable() {
+      const session = getCurrentSession();
+      const tbody = document.getElementById('analysisTableBody');
+      tbody.innerHTML = '';
+      if (!session) return;
+      session.actions.forEach((action, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${action.order}</td>
+          <td><input type="text" value="${action.name}" data-index="${index}" data-field="name"></td>
+          <td>${formatDuration(action.duration || 0)}</td>
+          <td>
+            <select data-index="${index}" data-field="category">
+              <option value="VA" ${action.category === 'VA' ? 'selected' : ''}>VA</option>
+              <option value="NVA" ${action.category === 'NVA' ? 'selected' : ''}>NVA</option>
+              <option value="Unclassified" ${action.category === 'Unclassified' ? 'selected' : ''}>Unclassified</option>
+            </select>
+          </td>
+          <td>
+            <select data-index="${index}" data-field="waste">
+              ${['','Waiting','Motion','Transport','Inventory','Overproduction','Overprocessing','Defect','Other'].map(w => `<option value="${w}" ${action.waste === w ? 'selected' : ''}>${w || '—'}</option>`).join('')}
+            </select>
+          </td>
+          <td><input type="text" value="${action.station || ''}" data-index="${index}" data-field="station"></td>
+          <td><input type="text" value="${action.comment || ''}" data-index="${index}" data-field="comment"></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', (e) => {
+          const idx = parseInt(e.target.getAttribute('data-index'), 10);
+          const field = e.target.getAttribute('data-field');
+          updateActionField(idx, field, e.target.value);
+        });
+      });
+      updateSummary();
+    }
+
+    function updateActionField(index, field, value) {
+      const session = getCurrentSession();
+      if (!session || !session.actions[index]) return;
+      session.actions[index][field] = value;
+      saveSessions();
+      updateSummary();
+    }
+
+    // Summary & interpretation
+    function updateSummary() {
+      const session = getCurrentSession();
+      if (!session) return;
+      let total = 0, va = 0, nva = 0;
+      session.actions.forEach(act => {
+        const duration = act.end ? Math.round((act.end - act.start)/1000) : (act.start ? Math.round((Date.now() - act.start)/1000) : 0);
+        act.duration = duration;
+        total += duration;
+        if (act.category === 'VA') va += duration;
+        if (act.category === 'NVA') nva += duration;
+      });
+      saveSessions();
+
+      const summary = document.getElementById('summaryCards');
+      summary.innerHTML = '';
+      const cards = [
+        { label: 'Durée totale', value: formatDuration(total) },
+        { label: 'VA', value: `${formatDuration(va)} (${total? Math.round((va/total)*100):0}%)` },
+        { label: 'NVA', value: `${formatDuration(nva)} (${total? Math.round((nva/total)*100):0}%)` }
+      ];
+      cards.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'summary-card';
+        div.innerHTML = `<div style="color:var(--muted); font-size:12px; letter-spacing:1px;">${c.label}</div><div style="font-size:20px; font-weight:700; margin-top:6px;">${c.value}</div>`;
+        summary.appendChild(div);
+      });
+
+      const totalPerc = total || 1; // avoid zero
+      const vaPerc = Math.round((va / totalPerc) * 100);
+      const nvaPerc = 100 - vaPerc;
+      document.getElementById('barVA').style.width = `${vaPerc}%`;
+      document.getElementById('barNVA').style.width = `${nvaPerc}%`;
+      document.getElementById('barVA').title = `VA ${vaPerc}%`;
+      document.getElementById('barNVA').title = `NVA ${nvaPerc}%`;
+
+      const note = document.getElementById('autoNote');
+      const nvaRatio = total ? (nva / total) : 0;
+      if (nvaRatio > 0.4) {
+        note.innerText = "La part de NVA est élevée. Prioriser l'analyse des étapes à forte NVA (attentes, déplacements, réglages) et envisager des actions SMED/5S.";
+      } else {
+        note.innerText = "Répartition VA/NVA maîtrisée. Consolider les standards et cibler les gaspillages résiduels.";
+      }
+    }
+
+    // Auto resume timers if a session is running when the page reloads
+    function resumeRunningTimers() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const hasRunningAction = session.actions.some(a => !a.end);
+      if (session.startedAt && (!session.endedAt || hasRunningAction)) {
+        startTimers();
+      } else {
+        stopTimers();
+      }
+    }
+
+    // CSV Export
+    function exportSessionToCSV() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const headers = ['SessionId','SessionName','Date','Line','PO','Observer','Order','Name','Category','Waste','Station','StartTime','EndTime','DurationSeconds','DurationFormatted','Comment'];
+      const rows = [];
+      const meta = `${session.id},${escapeCsv(session.name)},${session.date},${escapeCsv(session.line)},${escapeCsv(session.po)},${escapeCsv(session.observer)}`;
+      session.actions.forEach(act => {
+        const start = act.start ? new Date(act.start).toLocaleString() : '';
+        const end = act.end ? new Date(act.end).toLocaleString() : '';
+        const duration = act.duration || (act.end ? Math.round((act.end - act.start)/1000) : 0);
+        const formatted = formatDuration(duration);
+        rows.push(`${meta},${act.order},${escapeCsv(act.name)},${act.category},${act.waste},${escapeCsv(act.station)},${start},${end},${duration},${formatted},${escapeCsv(act.comment)}`);
+      });
+      const content = headers.join(',') + '\n' + rows.join('\n');
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${session.name || 'session'}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeCsv(val) {
+      if (val === undefined || val === null) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    // Init
+    window.onload = () => {
+      loadSessions();
+      setMode('capture');
+      resumeRunningTimers();
+    };
+  </script>
+</body>
+</html>
