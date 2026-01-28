@@ -15,6 +15,7 @@
       --accent-green: #58d68d;
       --accent-orange: #ff8f5c;
       --accent-red: #ff6b6b;
+      --accent-yellow: #f4d35e;
       --border: rgba(255, 255, 255, 0.18);
       --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
     }
@@ -46,7 +47,7 @@
       position: relative;
       z-index: 1;
       padding: 24px;
-      max-width: 1400px;
+      max-width: 1480px;
       margin: 0 auto 48px;
     }
 
@@ -55,6 +56,8 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 24px;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
     .title-block {
@@ -80,6 +83,7 @@
     .tabs {
       display: flex;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     .tab {
@@ -139,6 +143,8 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 8px;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .small-actions {
@@ -147,8 +153,13 @@
       flex-wrap: wrap;
     }
 
-    button, input, select {
+    button, input, select, textarea {
       font-family: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
     }
 
     .btn {
@@ -208,7 +219,7 @@
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     label { font-size: 12px; color: var(--text-soft); }
 
-    input, select {
+    input, select, textarea {
       background: rgba(255,255,255,0.08);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -217,7 +228,7 @@
       outline: none;
     }
 
-    input:focus, select:focus { border-color: rgba(77,163,255,0.8); box-shadow: 0 0 0 3px rgba(77,163,255,0.2); }
+    input:focus, select:focus, textarea:focus { border-color: rgba(77,163,255,0.8); box-shadow: 0 0 0 3px rgba(77,163,255,0.2); }
 
     .chrono-block {
       display: flex;
@@ -237,6 +248,7 @@
       font-size: 20px;
       color: var(--text-soft);
       font-weight: 600;
+      text-align: center;
     }
 
     .current-action-name {
@@ -249,7 +261,7 @@
 
     .actions-list {
       display: grid;
-      grid-template-columns: 1fr 120px 120px 120px;
+      grid-template-columns: 1fr 110px 120px 100px;
       gap: 8px 12px;
       align-items: center;
       font-size: 14px;
@@ -259,10 +271,11 @@
     .chip { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 6px; }
     .chip.badge { background: rgba(77,163,255,0.15); }
 
+    .table-scroll { overflow-x: auto; }
     .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; }
+    .table th, .table td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: top; }
     .table th { color: var(--text-soft); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .table input, .table select { width: 100%; }
+    .table input, .table select, .table textarea { width: 100%; min-width: 120px; }
 
     .synthesis {
       display: grid;
@@ -287,10 +300,49 @@
     .bar-va { background: rgba(88,214,141,0.8); }
     .bar-nva { background: rgba(255,143,92,0.85); }
 
-    .export-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .export-row { display: flex; justify-content: flex-end; margin-top: 8px; gap: 10px; flex-wrap: wrap; }
+
+    .gantt-list { display: flex; flex-direction: column; gap: 12px; }
+    .gantt-row { padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
+    .gantt-meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--text-soft); }
+    .gantt-track { position: relative; height: 18px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin-top: 8px; }
+    .gantt-bar { position: absolute; top: 3px; height: 12px; border-radius: 8px; }
+    .gantt-bar.standard { background: rgba(255,255,255,0.25); border: 1px dashed rgba(255,255,255,0.4); }
+    .gantt-bar.real { opacity: 0.9; }
+    .gantt-real-ok { background: rgba(88,214,141,0.85); }
+    .gantt-real-warning { background: rgba(255,143,92,0.85); }
+    .gantt-real-alert { background: rgba(255,107,107,0.9); }
+    .gantt-real-unknown { background: rgba(77,163,255,0.6); }
+    .gantt-detail { margin-top: 12px; font-size: 13px; color: var(--text-soft); line-height: 1.5; }
+
+    .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow: auto; }
+    .history-item { display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
+    .history-main { display: flex; flex-direction: column; gap: 4px; }
+    .history-meta { font-size: 12px; color: var(--text-soft); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .note {
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-top: 6px;
+    }
 
     @media (max-width: 1024px) {
       .layout { grid-template-columns: 1fr; }
+      .actions-list { grid-template-columns: 1fr 100px 100px 90px; }
     }
   </style>
 </head>
@@ -304,49 +356,216 @@
       <div class="tabs">
         <div class="tab active" data-view="capture">Capture</div>
         <div class="tab" data-view="analyse">Analyse</div>
+        <div class="tab" data-view="gantt">Gantt</div>
+        <div class="tab" data-view="historique">Historique</div>
       </div>
     </header>
 
     <div id="capture-view" class="layout"></div>
     <div id="analysis-view" class="layout" style="display:none;"></div>
+    <div id="gantt-view" class="layout" style="display:none;"></div>
+    <div id="history-view" class="layout" style="display:none;"></div>
   </div>
 
   <script>
     const STORAGE_KEY = 'lean-timer-blueprint';
+    const STORAGE_SESSIONS_KEY = 'smed_sessions_v1';
+    const SCHEMA_VERSION = '2';
+    const DEFAULT_FAMILIES = [
+      'Fin de PO',
+      'Vide de ligne',
+      'Changement outillage',
+      'Réglages machine',
+      'Contrôles qualité',
+      'Démarrage production'
+    ];
+    const DEFAULT_GAP_CAUSES = [
+      { code: 'ATT_MAT', label: 'Attente matériel' },
+      { code: 'ATT_OUT', label: 'Attente outillage' },
+      { code: 'ATT_PERS', label: 'Attente personnel' },
+      { code: 'REGLAGE', label: 'Réglage complexe' },
+      { code: 'INC_TECH', label: 'Incident technique' },
+      { code: 'AUTRE', label: 'Autre cause' }
+    ];
+
     const state = {
+      schemaVersion: SCHEMA_VERSION,
       sessions: [],
       selectedSessionId: null,
-      timerInterval: null
+      refs: {
+        families: [...DEFAULT_FAMILIES],
+        gapCauses: [...DEFAULT_GAP_CAUSES]
+      },
+      historySessions: [],
+      historySelection: new Set(),
+      historyFilter: { start: '', end: '' },
+      captureOptions: {
+        operatorIndex: 1,
+        smedType: 'Interne',
+        actorRole: 'OP'
+      },
+      timerInterval: null,
+      activeView: 'capture'
     };
 
     function uid() { return Math.random().toString(36).slice(2, 10); }
 
+    function safeParse(raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        console.error('Erreur de parsing JSON', error);
+        return null;
+      }
+    }
+
+    // Charge l'état principal, avec migration automatique si besoin.
     function loadState() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        try {
-          const data = JSON.parse(raw);
-          state.sessions = data.sessions || [];
-          state.selectedSessionId = data.selectedSessionId || (state.sessions[0]?.id || null);
-        } catch (e) {
-          console.error('Failed to parse state', e);
-          state.sessions = [];
-          state.selectedSessionId = null;
+        const data = safeParse(raw);
+        if (data) {
+          const migrated = migrateState(data, raw);
+          applyState(migrated);
         }
       }
+
       if (!state.sessions.length) {
         const session = createSession('Session 1');
         state.sessions.push(session);
         state.selectedSessionId = session.id;
-        saveState();
       }
+
+      loadHistory();
+      saveState();
     }
 
+    // Applique un état déjà normalisé dans le store local.
+    function applyState(data) {
+      const normalized = normalizeState(data);
+      state.schemaVersion = normalized.schemaVersion;
+      state.sessions = normalized.sessions;
+      state.selectedSessionId = normalized.selectedSessionId;
+      state.refs = normalized.refs;
+      state.captureOptions = normalized.captureOptions;
+    }
+
+    // Migration vers le schéma V2, avec backup systématique.
+    function migrateState(data, raw) {
+      const version = data.schemaVersion ? String(data.schemaVersion) : '1';
+      if (version === SCHEMA_VERSION) {
+        return normalizeState(data);
+      }
+      localStorage.setItem('smed_backup_v1', raw);
+      localStorage.setItem('smed_backup_date', new Date().toISOString());
+      const migrated = {
+        schemaVersion: SCHEMA_VERSION,
+        sessions: data.sessions || [],
+        selectedSessionId: data.selectedSessionId || (data.sessions?.[0]?.id || null),
+        refs: data.refs || { families: [...DEFAULT_FAMILIES], gapCauses: [...DEFAULT_GAP_CAUSES] },
+        captureOptions: data.captureOptions || { operatorIndex: 1, smedType: 'Interne', actorRole: 'OP' }
+      };
+      return normalizeState(migrated);
+    }
+
+    // Normalise l'état pour garantir les champs essentiels.
+    function normalizeState(data) {
+      const sessions = (data.sessions || []).map((session, index) => normalizeSession(session, index));
+      return {
+        schemaVersion: SCHEMA_VERSION,
+        sessions,
+        selectedSessionId: data.selectedSessionId || sessions[0]?.id || null,
+        refs: normalizeRefs(data.refs),
+        captureOptions: normalizeCaptureOptions(data.captureOptions)
+      };
+    }
+
+    function normalizeRefs(refs) {
+      const families = Array.isArray(refs?.families) && refs.families.length
+        ? refs.families
+        : [...DEFAULT_FAMILIES];
+      const gapCauses = Array.isArray(refs?.gapCauses) && refs.gapCauses.length
+        ? refs.gapCauses
+        : [...DEFAULT_GAP_CAUSES];
+      return { families, gapCauses };
+    }
+
+    function normalizeCaptureOptions(options) {
+      return {
+        operatorIndex: Number(options?.operatorIndex) || 1,
+        smedType: options?.smedType || 'Interne',
+        actorRole: options?.actorRole || 'OP'
+      };
+    }
+
+    function normalizeSession(session, index) {
+      const today = new Date().toISOString().slice(0, 10);
+      const meta = {
+        date: session?.meta?.date || today,
+        line: session?.meta?.line || '',
+        po: session?.meta?.po || '',
+        observer: session?.meta?.observer || ''
+      };
+      const actions = (session?.actions || []).map((action, actionIndex) => normalizeAction(action, actionIndex));
+      return {
+        id: session?.id || uid(),
+        name: session?.name || `Session ${index + 1}`,
+        createdAt: session?.createdAt || Date.now(),
+        startedAt: session?.startedAt || null,
+        endedAt: session?.endedAt || null,
+        meta,
+        actions
+      };
+    }
+
+    function normalizeAction(action, index) {
+      const order = action?.order || index + 1;
+      const name = action?.name || `Action ${order}`;
+      return {
+        id: action?.id || uid(),
+        order,
+        name,
+        startTime: action?.startTime || null,
+        endTime: action?.endTime || null,
+        duration: action?.duration || 0,
+        type: action?.type || 'VA',
+        phase: action?.phase || name,
+        family: action?.family || 'Fin de PO',
+        smedType: action?.smedType || 'Interne',
+        actorRole: action?.actorRole || 'OP',
+        operatorIndex: action?.operatorIndex || 1,
+        targetMin: Number(action?.targetMin) || 0,
+        gapCause: action?.gapCause || '',
+        comment: action?.comment || ''
+      };
+    }
+
+    // Sauvegarde l'état principal dans le localStorage.
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        schemaVersion: SCHEMA_VERSION,
         sessions: state.sessions,
-        selectedSessionId: state.selectedSessionId
+        selectedSessionId: state.selectedSessionId,
+        refs: state.refs,
+        captureOptions: state.captureOptions
       }));
+    }
+
+    // Charge et normalise l'historique des sessions clôturées.
+    function loadHistory() {
+      const raw = localStorage.getItem(STORAGE_SESSIONS_KEY);
+      if (!raw) {
+        state.historySessions = [];
+        return;
+      }
+      const data = safeParse(raw);
+      state.historySessions = Array.isArray(data)
+        ? data.map((session, index) => normalizeSession(session, index))
+        : [];
+    }
+
+    function saveHistory() {
+      localStorage.setItem(STORAGE_SESSIONS_KEY, JSON.stringify(state.historySessions));
     }
 
     function getCurrentSession() {
@@ -362,7 +581,7 @@
     }
 
     function createSession(name = 'Nouvelle session') {
-      const today = new Date().toISOString().slice(0,10);
+      const today = new Date().toISOString().slice(0, 10);
       return {
         id: uid(),
         name,
@@ -374,6 +593,18 @@
       };
     }
 
+    function createAction(order, startTime, overrides = {}) {
+      return normalizeAction({
+        id: uid(),
+        order,
+        name: `Action ${order}`,
+        startTime,
+        endTime: null,
+        type: 'VA',
+        ...overrides
+      }, order - 1);
+    }
+
     function selectSession(id) {
       state.selectedSessionId = id;
       stopTimer();
@@ -381,17 +612,29 @@
       saveState();
     }
 
+    function createSessionAndReturn() {
+      const session = createSession(`Session ${state.sessions.length + 1}`);
+      state.sessions.push(session);
+      state.selectedSessionId = session.id;
+      saveState();
+      render();
+      return session;
+    }
+
     function duplicateSession() {
       const current = getCurrentSession();
       if (!current) return;
-      const clone = createSession(current.name + ' (copie)');
+      const clone = createSession(`${current.name} (copie)`);
       clone.meta = { ...current.meta };
       state.sessions.push(clone);
       selectSession(clone.id);
     }
 
     function deleteSession() {
-      if (state.sessions.length <= 1) return alert('Impossible de supprimer la dernière session.');
+      if (state.sessions.length <= 1) {
+        alert('Impossible de supprimer la dernière session.');
+        return;
+      }
       const current = getCurrentSession();
       if (!current) return;
       if (confirm('Supprimer cette session ?')) {
@@ -414,6 +657,7 @@
       }
     }
 
+    // Démarre l'étude et lance la première action si besoin.
     function startStudy() {
       const session = getCurrentSession();
       if (!session) return;
@@ -428,6 +672,7 @@
       renderCaptureView();
     }
 
+    // Crée une nouvelle action et clôture la précédente.
     function startNewAction(type) {
       const session = getCurrentSession();
       if (!session) return;
@@ -436,18 +681,14 @@
       const current = getCurrentAction(session);
       if (current) {
         current.endTime = now;
-        current.duration = current.endTime - current.startTime;
       }
       const order = session.actions.length + 1;
-      session.actions.push({
-        id: uid(),
-        order,
-        name: `Action ${order}`,
-        startTime: now,
-        endTime: null,
-        duration: 0,
-        type: type || 'VA'
-      });
+      session.actions.push(createAction(order, now, {
+        type: type || 'VA',
+        operatorIndex: state.captureOptions.operatorIndex,
+        smedType: state.captureOptions.smedType,
+        actorRole: state.captureOptions.actorRole
+      }));
       session.endedAt = null;
       startTimer();
       saveState();
@@ -461,7 +702,6 @@
       const current = getCurrentAction(session);
       if (current) {
         current.endTime = now;
-        current.duration = current.endTime - current.startTime;
       }
       session.endedAt = now;
       stopTimer();
@@ -498,11 +738,13 @@
       render();
     }
 
+    // Renommage live de l'action en cours.
     function updateCurrentActionName(value) {
       const session = getCurrentSession();
       const current = getCurrentAction(session);
       if (current) {
         current.name = value || '';
+        current.phase = value || '';
         saveState();
         render();
       }
@@ -516,11 +758,25 @@
       render();
     }
 
+    function renameInline(value) {
+      const session = getCurrentSession();
+      if (!session) return;
+      session.name = value;
+      saveState();
+      render();
+    }
+
+    function updateCaptureOption(field, value) {
+      state.captureOptions[field] = field === 'operatorIndex' ? Number(value) : value;
+      saveState();
+    }
+
     function startTimer() {
       if (state.timerInterval) return;
       state.timerInterval = setInterval(() => {
-        renderCaptureView();
-        renderAnalysisView();
+        if (state.activeView === 'capture') renderCaptureView();
+        if (state.activeView === 'analyse') renderAnalysisView();
+        if (state.activeView === 'gantt') renderGanttView();
       }, 500);
     }
 
@@ -542,21 +798,75 @@
       return `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
     }
 
+    function formatSignedDuration(ms) {
+      const sign = ms < 0 ? '-' : '+';
+      return `${sign}${formatDuration(Math.abs(ms))}`;
+    }
+
     function formatTime(ts) {
       if (!ts) return '-';
-      const d = new Date(ts);
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const date = new Date(ts);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function formatDate(ts) {
+      if (!ts) return '-';
+      const date = new Date(ts);
+      return date.toLocaleDateString();
+    }
+
+    function formatNumberFR(value, decimals = 1) {
+      if (value === null || value === undefined || Number.isNaN(value)) return '';
+      return value.toFixed(decimals).replace('.', ',');
     }
 
     function computeDuration(action) {
-      if (!action) return 0;
+      if (!action || !action.startTime) return 0;
       const end = action.endTime || Date.now();
       return Math.max(0, end - action.startTime);
+    }
+
+    function computeSessionTotal(session) {
+      if (!session) return 0;
+      return (session.actions || []).reduce((sum, action) => sum + computeDuration(action), 0);
+    }
+
+    // Calcule les écarts SMED d'une action terminée (réel vs cible).
+    function computeGap(action) {
+      const realMs = action.endTime ? computeDuration(action) : 0;
+      const targetMs = (Number(action.targetMin) || 0) * 60000;
+      const gapMs = realMs - targetMs;
+      const gapPct = targetMs > 0 ? (gapMs / targetMs) * 100 : null;
+      return { realMs, targetMs, gapMs, gapPct };
+    }
+
+    function computeSessionPerformance(session) {
+      const actions = (session?.actions || []).filter(action => action.endTime);
+      const totals = actions.reduce((acc, action) => {
+        const { realMs, targetMs, gapMs } = computeGap(action);
+        acc.realMs += realMs;
+        acc.targetMs += targetMs;
+        acc.gapMs += gapMs;
+        return acc;
+      }, { realMs: 0, targetMs: 0, gapMs: 0 });
+      const gapPct = totals.targetMs > 0 ? (totals.gapMs / totals.targetMs) * 100 : null;
+      return { ...totals, gapPct };
+    }
+
+    // Détermine la couleur de performance de la barre \"réel\" du Gantt.
+    function buildGapColorClass(action) {
+      const { gapMs, gapPct, targetMs } = computeGap(action);
+      if (targetMs === 0) return 'gantt-real-unknown';
+      if (gapMs <= 0) return 'gantt-real-ok';
+      if (gapPct !== null && gapPct <= 15) return 'gantt-real-warning';
+      return 'gantt-real-alert';
     }
 
     function render() {
       renderCaptureView();
       renderAnalysisView();
+      renderGanttView();
+      renderHistoryView();
     }
 
     function sidebarHTML() {
@@ -571,10 +881,10 @@
               </div>
             </div>
             <div class="sessions-list">
-              ${state.sessions.map(s => `
-                <div class="session-item ${s.id === state.selectedSessionId ? 'active' : ''}" onclick="selectSession('${s.id}')">
-                  <div class="session-name">${s.name}</div>
-                  <div class="session-date">${s.meta?.date || ''}</div>
+              ${state.sessions.map(session => `
+                <div class="session-item ${session.id === state.selectedSessionId ? 'active' : ''}" onclick="selectSession('${session.id}')">
+                  <div class="session-name">${session.name}</div>
+                  <div class="session-date">${session.meta?.date || ''}</div>
                 </div>
               `).join('')}
             </div>
@@ -587,25 +897,16 @@
         </div>`;
     }
 
-    function createSessionAndReturn() {
-      const session = createSession(`Session ${state.sessions.length + 1}`);
-      state.sessions.push(session);
-      state.selectedSessionId = session.id;
-      saveState();
-      render();
-      return session;
-    }
-
     function renderSessionInfoCard() {
-      const s = getCurrentSession();
-      const meta = s?.meta || {};
+      const session = getCurrentSession();
+      const meta = session?.meta || {};
       return `
         <div class="card">
           <strong class="title">Informations session</strong>
           <div class="form-grid">
             <div class="form-group">
               <label>Nom d'étude</label>
-              <input value="${s?.name || ''}" oninput="renameInline(this.value)">
+              <input value="${session?.name || ''}" oninput="renameInline(this.value)">
             </div>
             <div class="form-group">
               <label>Date</label>
@@ -627,28 +928,23 @@
         </div>`;
     }
 
-    function renameInline(value) {
-      const s = getCurrentSession();
-      if (!s) return;
-      s.name = value;
-      saveState();
-      render();
-    }
-
     function renderCaptureView() {
       const capture = document.getElementById('capture-view');
       if (!capture) return;
-      const s = getCurrentSession();
-      const action = getCurrentAction(s);
+      if (state.activeView !== 'capture') return;
+      const session = getCurrentSession();
+      const action = getCurrentAction(session);
       const currentActionDuration = action ? computeDuration(action) : 0;
-      const totalDuration = s && s.startedAt ? Math.max(0, (s.endedAt || Date.now()) - s.startedAt) : 0;
+      const totalDuration = session && session.startedAt
+        ? Math.max(0, (session.endedAt || Date.now()) - session.startedAt)
+        : 0;
       capture.innerHTML = `
         ${sidebarHTML()}
         <div class="column">
           <div class="card">
             <div class="panel-header">
               <strong class="title">Mode Capture</strong>
-              <div class="chip badge">${s?.name || ''}</div>
+              <div class="chip badge">${session?.name || ''}</div>
             </div>
             <div class="chrono-block">
               <div class="chrono-global">${formatDuration(totalDuration)}</div>
@@ -664,24 +960,48 @@
               <button class="btn btn-ghost" onclick="markType('Attente')">Attente</button>
               <button class="btn btn-ghost" onclick="markType('Déplacement')">Déplacement</button>
               <button class="btn btn-ghost" onclick="undoLastAction()">Annuler dernière</button>
+              <button class="btn btn-ghost" onclick="closeSession()">Clôturer session</button>
+            </div>
+            <div class="card" style="margin-top:14px;">
+              <strong class="title">Préparation prochaine action</strong>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Opérateur</label>
+                  <select onchange="updateCaptureOption('operatorIndex', this.value)">
+                    ${[1,2,3].map(value => `<option value="${value}" ${state.captureOptions.operatorIndex === value ? 'selected' : ''}>${value}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Type SMED</label>
+                  <select onchange="updateCaptureOption('smedType', this.value)">
+                    ${['Interne','Externe'].map(value => `<option value="${value}" ${state.captureOptions.smedType === value ? 'selected' : ''}>${value}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Acteur</label>
+                  <select onchange="updateCaptureOption('actorRole', this.value)">
+                    ${['OP','Maintenance','Qualité','Autre'].map(value => `<option value="${value}" ${state.captureOptions.actorRole === value ? 'selected' : ''}>${value}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="card">
             <div class="panel-header">
               <strong class="title">Actions de l'étude</strong>
-              <div class="chip">${s?.actions?.length || 0} action(s)</div>
+              <div class="chip">${session?.actions?.length || 0} action(s)</div>
             </div>
             <div class="actions-list">
               <div class="header">Nom</div>
               <div class="header">Durée</div>
               <div class="header">Type</div>
               <div class="header">Statut</div>
-              ${(s?.actions || []).map(a => `
-                <div>${a.name}</div>
-                <div>${formatDuration(computeDuration(a))}</div>
-                <div>${a.type}</div>
-                <div>${a.endTime ? 'Terminé' : 'En cours'}</div>
+              ${(session?.actions || []).map(actionRow => `
+                <div>${actionRow.name}</div>
+                <div>${formatDuration(computeDuration(actionRow))}</div>
+                <div>${actionRow.type}</div>
+                <div>${actionRow.endTime ? 'Terminé' : 'En cours'}</div>
               `).join('')}
             </div>
           </div>
@@ -691,17 +1011,24 @@
     function renderAnalysisView() {
       const analysis = document.getElementById('analysis-view');
       if (!analysis) return;
-      if (analysis.style.display === 'none') return; // avoid work when hidden
-      const s = getCurrentSession();
-      const actions = s?.actions || [];
-      const totalDuration = actions.reduce((sum, a) => sum + computeDuration(a), 0);
-      const totalVA = actions.filter(a => a.type === 'VA').reduce((sum, a) => sum + computeDuration(a), 0);
+      if (state.activeView !== 'analyse') return;
+      const session = getCurrentSession();
+      const actions = session?.actions || [];
+      const totalDuration = actions.reduce((sum, action) => sum + computeDuration(action), 0);
+      const totalVA = actions.filter(action => action.type === 'VA').reduce((sum, action) => sum + computeDuration(action), 0);
       const totalNVA = totalDuration - totalVA;
       const vaPct = totalDuration ? Math.round((totalVA / totalDuration) * 100) : 0;
       const nvaPct = 100 - vaPct;
       const comment = totalDuration && (totalNVA / totalDuration > 0.4)
         ? 'Part de NVA élevée, prioriser les étapes d’attente et de déplacement.'
         : 'Répartition VA/NVA maîtrisée, consolider les standards et cibler les gaspillages résiduels.';
+
+      const performance = computeSessionPerformance(session);
+      const familyStats = buildFamilyStats(actions);
+      const typeStats = buildSmedTypeStats(actions);
+      const topGapActions = buildTopGapActions(actions, 5);
+      const gapPareto = buildGapPareto(actions);
+
       analysis.innerHTML = `
         ${sidebarHTML()}
         <div class="column">
@@ -710,34 +1037,71 @@
               <strong class="title">Tableau des actions</strong>
               <div class="chip">${actions.length} ligne(s)</div>
             </div>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Ordre</th>
-                  <th>Nom</th>
-                  <th>Durée</th>
-                  <th>Type</th>
-                  <th>Début</th>
-                  <th>Fin</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${actions.map(a => `
+            <div class="table-scroll">
+              <table class="table">
+                <thead>
                   <tr>
-                    <td>${a.order}</td>
-                    <td><input value="${a.name}" oninput="updateActionField('${a.id}','name', this.value)"></td>
-                    <td>${formatDuration(computeDuration(a))}</td>
-                    <td>
-                      <select onchange="updateActionField('${a.id}','type', this.value)">
-                        ${['VA','NVA','Attente','Déplacement'].map(opt => `<option value="${opt}" ${a.type===opt?'selected':''}>${opt}</option>`).join('')}
-                      </select>
-                    </td>
-                    <td>${formatTime(a.startTime)}</td>
-                    <td>${a.endTime ? formatTime(a.endTime) : '-'}</td>
+                    <th>Ordre</th>
+                    <th>Nom</th>
+                    <th>Durée</th>
+                    <th>Type Lean</th>
+                    <th>Famille</th>
+                    <th>SMED</th>
+                    <th>Acteur</th>
+                    <th>Opérateur</th>
+                    <th>Cible (min)</th>
+                    <th>Cause écart</th>
+                    <th>Commentaire</th>
+                    <th>Début</th>
+                    <th>Fin</th>
                   </tr>
-                `).join('')}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  ${actions.map(action => `
+                    <tr>
+                      <td>${action.order}</td>
+                      <td><input value="${action.name}" oninput="updateActionField('${action.id}','name', this.value)"></td>
+                      <td>${formatDuration(computeDuration(action))}</td>
+                      <td>
+                        <select onchange="updateActionField('${action.id}','type', this.value)">
+                          ${['VA','NVA','Attente','Déplacement'].map(option => `<option value="${option}" ${action.type===option?'selected':''}>${option}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td>
+                        <select onchange="updateActionField('${action.id}','family', this.value)">
+                          ${state.refs.families.map(option => `<option value="${option}" ${action.family===option?'selected':''}>${option}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td>
+                        <select onchange="updateActionField('${action.id}','smedType', this.value)">
+                          ${['Interne','Externe'].map(option => `<option value="${option}" ${action.smedType===option?'selected':''}>${option}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td>
+                        <select onchange="updateActionField('${action.id}','actorRole', this.value)">
+                          ${['OP','Maintenance','Qualité','Autre'].map(option => `<option value="${option}" ${action.actorRole===option?'selected':''}>${option}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td>
+                        <select onchange="updateActionField('${action.id}','operatorIndex', this.value)">
+                          ${[1,2,3].map(option => `<option value="${option}" ${Number(action.operatorIndex)===option?'selected':''}>${option}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td><input type="number" min="0" step="0.1" value="${action.targetMin}" oninput="updateActionField('${action.id}','targetMin', this.value)"></td>
+                      <td>
+                        <select onchange="updateActionField('${action.id}','gapCause', this.value)">
+                          <option value="">-</option>
+                          ${state.refs.gapCauses.map(option => `<option value="${option.code}" ${action.gapCause===option.code?'selected':''}>${option.code}</option>`).join('')}
+                        </select>
+                      </td>
+                      <td><input value="${action.comment || ''}" oninput="updateActionField('${action.id}','comment', this.value)"></td>
+                      <td>${formatTime(action.startTime)}</td>
+                      <td>${action.endTime ? formatTime(action.endTime) : '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div class="card">
@@ -757,52 +1121,759 @@
               </div>
             </div>
             <p style="margin-top:10px; color: var(--text-soft);">${comment}</p>
+          </div>
+
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">SMED Performance</strong>
+            </div>
+            <div class="synthesis">
+              <div class="stat"><div class="value">${formatDuration(performance.realMs)}</div><div class="label">Total réel</div></div>
+              <div class="stat"><div class="value">${formatDuration(performance.targetMs)}</div><div class="label">Total cible</div></div>
+              <div class="stat"><div class="value">${formatSignedDuration(performance.gapMs)}</div><div class="label">Écart global</div></div>
+              <div class="stat"><div class="value">${performance.gapPct === null ? '-' : `${formatNumberFR(performance.gapPct, 1)}%`}</div><div class="label">Écart %</div></div>
+            </div>
+            <div class="tag-row">
+              ${topGapActions.map(item => `<span class="pill">${item.name} · ${formatDuration(item.gapMs)}</span>`).join('') || '<span class="pill">Aucun écart significatif</span>'}
+            </div>
+            <div class="note">Top 5 contributeurs basés sur l'écart positif (réel - cible).</div>
+            <div class="table-scroll" style="margin-top:12px;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Famille</th>
+                    <th>Réel</th>
+                    <th>Cible</th>
+                    <th>Écart</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${familyStats.map(row => `
+                    <tr>
+                      <td>${row.family}</td>
+                      <td>${formatDuration(row.realMs)}</td>
+                      <td>${formatDuration(row.targetMs)}</td>
+                      <td>${formatSignedDuration(row.gapMs)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div class="table-scroll" style="margin-top:12px;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Interne / Externe</th>
+                    <th>Réel</th>
+                    <th>Cible</th>
+                    <th>Écart</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${typeStats.map(row => `
+                    <tr>
+                      <td>${row.label}</td>
+                      <td>${formatDuration(row.realMs)}</td>
+                      <td>${formatDuration(row.targetMs)}</td>
+                      <td>${formatSignedDuration(row.gapMs)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div class="table-scroll" style="margin-top:12px;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Cause écart</th>
+                    <th>Total écart</th>
+                    <th>Nb actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${gapPareto.map(row => `
+                    <tr>
+                      <td>${row.label}</td>
+                      <td>${formatDuration(row.gapMs)}</td>
+                      <td>${row.count}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
             <div class="export-row">
               <button class="btn btn-blue" onclick="exportCSV()">Export CSV</button>
+              <button class="btn btn-ghost" onclick="exportReportHTML()">Rapport HTML</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Paramètres SMED</strong>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Ajouter une famille</label>
+                <input id="family-input" placeholder="Nouvelle famille">
+                <button class="btn btn-ghost" style="margin-top:8px;" onclick="addFamily()">Ajouter</button>
+              </div>
+              <div class="form-group">
+                <label>Ajouter une cause (code + libellé)</label>
+                <input id="gap-code-input" placeholder="Code (ex: ATT_MAT)">
+                <input id="gap-label-input" placeholder="Libellé">
+                <button class="btn btn-ghost" style="margin-top:8px;" onclick="addGapCause()">Ajouter</button>
+              </div>
+            </div>
+            <div class="table-scroll" style="margin-top:12px;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Familles</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${state.refs.families.map(family => `
+                    <tr>
+                      <td>${family}</td>
+                      <td><button class="btn btn-ghost" onclick="removeFamily('${family}')">Supprimer</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div class="table-scroll" style="margin-top:12px;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Causes d'écart</th>
+                    <th>Libellé</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${state.refs.gapCauses.map(cause => `
+                    <tr>
+                      <td>${cause.code}</td>
+                      <td>${cause.label}</td>
+                      <td><button class="btn btn-ghost" onclick="removeGapCause('${cause.code}')">Supprimer</button></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <p class="note">Les référentiels sont stockés dans le localStorage principal (schema v2).</p>
+          </div>
+        </div>`;
+    }
+
+    function renderGanttView() {
+      const gantt = document.getElementById('gantt-view');
+      if (!gantt) return;
+      if (state.activeView !== 'gantt') return;
+      const session = getCurrentSession();
+      const actions = (session?.actions || []).filter(action => action.endTime);
+      const startedAt = session?.startedAt;
+      if (!startedAt || !actions.length) {
+        gantt.innerHTML = `
+          ${sidebarHTML()}
+          <div class="column">
+            <div class="card">
+              <strong class="title">Gantt Performance</strong>
+              <p class="note">Aucune action terminée pour générer le Gantt.</p>
+            </div>
+          </div>`;
+        return;
+      }
+      const sorted = [...actions].sort((a, b) => {
+        if (a.phase !== b.phase) return a.phase.localeCompare(b.phase);
+        if (a.family !== b.family) return a.family.localeCompare(b.family);
+        if (a.operatorIndex !== b.operatorIndex) return a.operatorIndex - b.operatorIndex;
+        return a.order - b.order;
+      });
+      const maxEnd = Math.max(...sorted.map(action => action.endTime || 0));
+      const totalSpan = Math.max(1, maxEnd - startedAt);
+
+      gantt.innerHTML = `
+        ${sidebarHTML()}
+        <div class="column">
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Gantt Performance</strong>
+              <div class="chip">${sorted.length} action(s) terminée(s)</div>
+            </div>
+            <div class="gantt-list">
+              ${sorted.map(action => {
+                const { realMs, targetMs, gapMs, gapPct } = computeGap(action);
+                const startRel = action.startTime - startedAt;
+                const leftPct = (startRel / totalSpan) * 100;
+                const realPct = (realMs / totalSpan) * 100;
+                const targetPct = targetMs > 0 ? (targetMs / totalSpan) * 100 : 0;
+                const detail = `Phase: ${action.phase || action.name}\nFamille: ${action.family}\nOpérateur: ${action.operatorIndex}\nCible: ${action.targetMin} min\nRéel: ${formatDuration(realMs)}\nÉcart: ${formatSignedDuration(gapMs)} ${gapPct === null ? '' : `(${formatNumberFR(gapPct,1)}%)`}\nCause: ${action.gapCause || '-'}\nCommentaire: ${action.comment || '-'}`;
+                return `
+                  <div class="gantt-row" onclick="selectGanttAction('${action.id}')">
+                    <div class="gantt-meta">
+                      <div><strong>${action.name}</strong> · ${action.family} · OP${action.operatorIndex}</div>
+                      <div>${action.smedType} · ${action.actorRole}</div>
+                    </div>
+                    <div class="gantt-track" title="${detail}">
+                      ${targetMs > 0 ? `<div class="gantt-bar standard" style="left:${leftPct}%; width:${targetPct}%;"></div>` : ''}
+                      <div class="gantt-bar real ${buildGapColorClass(action)}" style="left:${leftPct}%; width:${realPct}%;"></div>
+                    </div>
+                    <div class="gantt-detail">Réel: ${formatDuration(realMs)} · Cible: ${formatDuration(targetMs)} · Écart: ${formatSignedDuration(gapMs)}</div>
+                  </div>`;
+              }).join('')}
             </div>
           </div>
         </div>`;
     }
 
+    function renderHistoryView() {
+      const history = document.getElementById('history-view');
+      if (!history) return;
+      if (state.activeView !== 'historique') return;
+      const filtered = filterHistorySessions();
+      const selectedSessions = filtered.filter(session => state.historySelection.has(session.id));
+      const sessionsToAnalyze = selectedSessions.length ? selectedSessions : filtered;
+      const historyStats = computeHistoryStats(sessionsToAnalyze);
+
+      history.innerHTML = `
+        ${sidebarHTML()}
+        <div class="column">
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Historique sessions clôturées</strong>
+              <div class="small-actions">
+                <button class="btn btn-ghost" onclick="closeSession()">Clôturer session</button>
+                <button class="btn btn-ghost" onclick="exportHistoryJSON()">Export JSON</button>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Date début</label>
+                <input type="date" value="${state.historyFilter.start}" oninput="updateHistoryFilter('start', this.value)">
+              </div>
+              <div class="form-group">
+                <label>Date fin</label>
+                <input type="date" value="${state.historyFilter.end}" oninput="updateHistoryFilter('end', this.value)">
+              </div>
+              <div class="form-group">
+                <label>Importer JSON</label>
+                <input type="file" accept="application/json" onchange="importHistoryJSON(event)">
+              </div>
+            </div>
+            <div class="history-list" style="margin-top:12px;">
+              ${filtered.map(session => {
+                const perf = computeSessionPerformance(session);
+                const totalDuration = computeSessionTotal(session);
+                return `
+                  <div class="history-item">
+                    <input type="checkbox" ${state.historySelection.has(session.id) ? 'checked' : ''} onclick="toggleHistorySelection('${session.id}')">
+                    <div class="history-main">
+                      <strong>${session.name}</strong>
+                      <div class="history-meta">${session.meta.date || formatDate(session.createdAt)} · Ligne: ${session.meta.line || 'NA'} · PO: ${session.meta.po || 'NA'}</div>
+                    </div>
+                    <div class="history-meta">Durée: ${formatDuration(totalDuration)} · Écart: ${perf.gapPct === null ? '-' : `${formatNumberFR(perf.gapPct,1)}%`}</div>
+                  </div>`;
+              }).join('')}
+            </div>
+            <p class="note">Astuce : la sélection limite l'analyse et l'export JSON.</p>
+          </div>
+
+          <div class="card">
+            <div class="panel-header">
+              <strong class="title">Analyse consolidée période</strong>
+              <div class="chip">${sessionsToAnalyze.length} session(s)</div>
+            </div>
+            <div class="synthesis">
+              <div class="stat"><div class="value">${historyStats.count}</div><div class="label">Sessions</div></div>
+              <div class="stat"><div class="value">${formatDuration(historyStats.meanMs)}</div><div class="label">Moyenne durée</div></div>
+              <div class="stat"><div class="value">${formatDuration(historyStats.medianMs)}</div><div class="label">Médiane durée</div></div>
+              <div class="stat"><div class="value">${formatDuration(historyStats.p95Ms)}</div><div class="label">P95 durée</div></div>
+              <div class="stat"><div class="value">${historyStats.meanGapPct === null ? '-' : `${formatNumberFR(historyStats.meanGapPct,1)}%`}</div><div class="label">Écart % moyen</div></div>
+            </div>
+            <div class="table-scroll">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Familles en dérive</th>
+                    <th>Écart total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${historyStats.familyGaps.map(row => `
+                    <tr>
+                      <td>${row.family}</td>
+                      <td>${formatDuration(row.gapMs)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div class="table-scroll" style="margin-top:12px;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Pareto causes</th>
+                    <th>Écart total</th>
+                    <th>Nb actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${historyStats.gapPareto.map(row => `
+                    <tr>
+                      <td>${row.label}</td>
+                      <td>${formatDuration(row.gapMs)}</td>
+                      <td>${row.count}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // Mise à jour simple des champs d'une action en Analyse.
     function updateActionField(actionId, field, value) {
-      const s = getCurrentSession();
-      if (!s) return;
-      const action = s.actions.find(a => a.id === actionId);
+      const session = getCurrentSession();
+      if (!session) return;
+      const action = session.actions.find(item => item.id === actionId);
       if (action) {
-        action[field] = value;
+        if (field === 'operatorIndex') {
+          action[field] = Number(value);
+        } else if (field === 'targetMin') {
+          action[field] = Number(value) || 0;
+        } else {
+          action[field] = value;
+        }
+        if (field === 'name') {
+          action.phase = value;
+        }
         saveState();
         renderAnalysisView();
         renderCaptureView();
+        renderGanttView();
       }
     }
 
-    function exportCSV() {
-      const s = getCurrentSession();
-      if (!s) return;
-      const header = `SessionName;Date;Line;PO;Observer`;
-      const metaLine = `${s.name};${s.meta.date};${s.meta.line};${s.meta.po};${s.meta.observer}`;
-      const rows = s.actions.map(a => {
-        const durationSeconds = Math.round(computeDuration(a) / 1000);
-        return `${a.order};${a.name};${a.type};${new Date(a.startTime).toISOString()};${a.endTime ? new Date(a.endTime).toISOString() : ''};${durationSeconds}`;
+    // Ajout d'une famille dans le référentiel.
+    function addFamily() {
+      const input = document.getElementById('family-input');
+      if (!input) return;
+      const value = input.value.trim();
+      if (!value) return;
+      if (!state.refs.families.includes(value)) {
+        state.refs.families.push(value);
+        saveState();
+        renderAnalysisView();
+      }
+      input.value = '';
+    }
+
+    function removeFamily(family) {
+      state.refs.families = state.refs.families.filter(item => item !== family);
+      saveState();
+      renderAnalysisView();
+    }
+
+    function addGapCause() {
+      const codeInput = document.getElementById('gap-code-input');
+      const labelInput = document.getElementById('gap-label-input');
+      if (!codeInput || !labelInput) return;
+      const code = codeInput.value.trim();
+      const label = labelInput.value.trim();
+      if (!code || !label) return;
+      const exists = state.refs.gapCauses.find(item => item.code === code);
+      if (!exists) {
+        state.refs.gapCauses.push({ code, label });
+        saveState();
+        renderAnalysisView();
+      }
+      codeInput.value = '';
+      labelInput.value = '';
+    }
+
+    function removeGapCause(code) {
+      state.refs.gapCauses = state.refs.gapCauses.filter(item => item.code !== code);
+      saveState();
+      renderAnalysisView();
+    }
+
+    // Construit les stats par famille.
+    // Répartition des écarts par famille d'opération.
+    function buildFamilyStats(actions) {
+      const map = {};
+      actions.filter(action => action.endTime).forEach(action => {
+        const { realMs, targetMs, gapMs } = computeGap(action);
+        if (!map[action.family]) {
+          map[action.family] = { family: action.family, realMs: 0, targetMs: 0, gapMs: 0 };
+        }
+        map[action.family].realMs += realMs;
+        map[action.family].targetMs += targetMs;
+        map[action.family].gapMs += gapMs;
       });
-      const csv = [header, metaLine, ...rows].join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      return Object.values(map).sort((a, b) => b.gapMs - a.gapMs);
+    }
+
+    // Répartition Interne / Externe.
+    function buildSmedTypeStats(actions) {
+      const map = {
+        Interne: { label: 'Interne', realMs: 0, targetMs: 0, gapMs: 0 },
+        Externe: { label: 'Externe', realMs: 0, targetMs: 0, gapMs: 0 }
+      };
+      actions.filter(action => action.endTime).forEach(action => {
+        const { realMs, targetMs, gapMs } = computeGap(action);
+        const key = action.smedType || 'Interne';
+        if (!map[key]) {
+          map[key] = { label: key, realMs: 0, targetMs: 0, gapMs: 0 };
+        }
+        map[key].realMs += realMs;
+        map[key].targetMs += targetMs;
+        map[key].gapMs += gapMs;
+      });
+      return Object.values(map);
+    }
+
+    // Top actions qui contribuent le plus aux écarts positifs.
+    function buildTopGapActions(actions, limit) {
+      return actions
+        .filter(action => action.endTime)
+        .map(action => ({
+          name: action.name,
+          gapMs: Math.max(0, computeGap(action).gapMs)
+        }))
+        .filter(item => item.gapMs > 0)
+        .sort((a, b) => b.gapMs - a.gapMs)
+        .slice(0, limit);
+    }
+
+    // Pareto des causes d'écart (codes courts).
+    function buildGapPareto(actions) {
+      const map = {};
+      actions.filter(action => action.endTime).forEach(action => {
+        const gapMs = Math.max(0, computeGap(action).gapMs);
+        if (!action.gapCause) return;
+        if (!map[action.gapCause]) {
+          const label = state.refs.gapCauses.find(cause => cause.code === action.gapCause)?.label || action.gapCause;
+          map[action.gapCause] = { label, gapMs: 0, count: 0 };
+        }
+        map[action.gapCause].gapMs += gapMs;
+        map[action.gapCause].count += 1;
+      });
+      return Object.values(map).sort((a, b) => b.gapMs - a.gapMs);
+    }
+
+    // Clôture la session courante et l'ajoute à l'historique.
+    function closeSession() {
+      const session = getCurrentSession();
+      if (!session) return;
+      if (!session.startedAt) {
+        alert('La session n\'a pas démarré.');
+        return;
+      }
+      const current = getCurrentAction(session);
+      if (current) {
+        current.endTime = Date.now();
+      }
+      if (!session.endedAt) {
+        session.endedAt = Date.now();
+      }
+      stopTimer();
+      saveState();
+      const copy = JSON.parse(JSON.stringify(session));
+      const existingIndex = state.historySessions.findIndex(item => item.id === copy.id);
+      if (existingIndex >= 0) {
+        state.historySessions[existingIndex] = copy;
+      } else {
+        state.historySessions.unshift(copy);
+      }
+      saveHistory();
+      renderHistoryView();
+      alert('Session clôturée et ajoutée à l\'historique.');
+    }
+
+    // Mise à jour des filtres de période pour l'historique.
+    function updateHistoryFilter(field, value) {
+      state.historyFilter[field] = value;
+      renderHistoryView();
+    }
+
+    function filterHistorySessions() {
+      const start = state.historyFilter.start ? new Date(state.historyFilter.start).getTime() : null;
+      const end = state.historyFilter.end ? new Date(state.historyFilter.end).getTime() : null;
+      return state.historySessions.filter(session => {
+        const dateValue = session.meta.date ? new Date(session.meta.date).getTime() : session.createdAt;
+        if (start && dateValue < start) return false;
+        if (end && dateValue > end + 86400000) return false;
+        return true;
+      });
+    }
+
+    function toggleHistorySelection(id) {
+      if (state.historySelection.has(id)) {
+        state.historySelection.delete(id);
+      } else {
+        state.historySelection.add(id);
+      }
+      renderHistoryView();
+    }
+
+    // Calcul des KPIs consolidés pour un ensemble de sessions clôturées.
+    function computeHistoryStats(sessions) {
+      const durations = sessions.map(session => computeSessionTotal(session)).sort((a, b) => a - b);
+      const count = durations.length;
+      const meanMs = count ? durations.reduce((sum, value) => sum + value, 0) / count : 0;
+      const medianMs = count
+        ? (count % 2 === 0
+          ? (durations[count / 2 - 1] + durations[count / 2]) / 2
+          : durations[Math.floor(count / 2)])
+        : 0;
+      const p95Index = count ? Math.min(count - 1, Math.floor(count * 0.95)) : 0;
+      const p95Ms = count ? durations[p95Index] : 0;
+      const gapPcts = sessions.map(session => computeSessionPerformance(session).gapPct).filter(value => value !== null);
+      const meanGapPct = gapPcts.length
+        ? gapPcts.reduce((sum, value) => sum + value, 0) / gapPcts.length
+        : null;
+
+      const familyMap = {};
+      const gapMap = {};
+      sessions.forEach(session => {
+        session.actions.filter(action => action.endTime).forEach(action => {
+          const { gapMs } = computeGap(action);
+          const positiveGap = Math.max(0, gapMs);
+          if (!familyMap[action.family]) {
+            familyMap[action.family] = { family: action.family, gapMs: 0 };
+          }
+          familyMap[action.family].gapMs += positiveGap;
+          if (action.gapCause) {
+            if (!gapMap[action.gapCause]) {
+              const label = state.refs.gapCauses.find(cause => cause.code === action.gapCause)?.label || action.gapCause;
+              gapMap[action.gapCause] = { label, gapMs: 0, count: 0 };
+            }
+            gapMap[action.gapCause].gapMs += positiveGap;
+            gapMap[action.gapCause].count += 1;
+          }
+        });
+      });
+      const familyGaps = Object.values(familyMap).sort((a, b) => b.gapMs - a.gapMs);
+      const gapPareto = Object.values(gapMap).sort((a, b) => b.gapMs - a.gapMs);
+
+      return {
+        count,
+        meanMs,
+        medianMs,
+        p95Ms,
+        meanGapPct,
+        familyGaps,
+        gapPareto
+      };
+    }
+
+    // Export JSON des sessions clôturées (sélection ou filtre).
+    function exportHistoryJSON() {
+      const filtered = filterHistorySessions();
+      const selected = filtered.filter(session => state.historySelection.has(session.id));
+      const payload = selected.length ? selected : filtered;
+      if (!payload.length) {
+        alert('Aucune session à exporter.');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${s.name || 'session'}.csv`;
+      a.download = `SMED_HISTORIQUE_${new Date().toISOString().replace(/[:.]/g, '').slice(0, 15)}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
 
+    // Import JSON avec écrasement si ID existant.
+    function importHistoryJSON(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const data = safeParse(reader.result);
+        if (!data || !Array.isArray(data)) {
+          alert('JSON invalide.');
+          return;
+        }
+        data.forEach((session, index) => {
+          const normalized = normalizeSession(session, index);
+          const existingIndex = state.historySessions.findIndex(item => item.id === normalized.id);
+          if (existingIndex >= 0) {
+            state.historySessions[existingIndex] = normalized;
+          } else {
+            state.historySessions.push(normalized);
+          }
+        });
+        saveHistory();
+        renderHistoryView();
+      };
+      reader.readAsText(file);
+    }
+
+    // Export CSV enrichi (compatible Excel FR, séparateur ; et BOM UTF-8).
+    function exportCSV() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const rows = (session.actions || []).map(action => {
+        const { realMs, targetMs, gapMs, gapPct } = computeGap(action);
+        const startIso = action.startTime ? new Date(action.startTime).toISOString() : '';
+        const endIso = action.endTime ? new Date(action.endTime).toISOString() : '';
+        const line = [
+          session.id,
+          session.name,
+          session.meta.date || '',
+          session.meta.line || '',
+          session.meta.po || '',
+          session.meta.observer || '',
+          action.order,
+          action.name,
+          action.phase || action.name,
+          action.family,
+          action.smedType,
+          action.actorRole,
+          action.operatorIndex,
+          formatNumberFR(action.targetMin, 1),
+          startIso,
+          endIso,
+          formatNumberFR(realMs / 1000, 1),
+          formatNumberFR(gapMs / 1000, 1),
+          gapPct === null ? '' : formatNumberFR(gapPct, 1),
+          action.gapCause,
+          action.comment,
+          action.type
+        ];
+        return line.join(';');
+      });
+      const header = [
+        'sessionId','sessionName','date','line','po','observer',
+        'order','name','phase','family','smedType','actorRole','operatorIndex',
+        'targetMin','startIso','endIso','realDuration_s','gap_s','gap_pct','gapCause','comment','typeLean'
+      ].join(';');
+      const csv = ['\ufeff' + header, ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const dateTag = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+      const line = session.meta.line || 'NA';
+      const po = session.meta.po || 'NA';
+      a.download = `SMED_${line}_${po}_${dateTag}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Rapport HTML autonome pour lecture et partage.
+    function exportReportHTML() {
+      const session = getCurrentSession();
+      if (!session) return;
+      const performance = computeSessionPerformance(session);
+      const actions = session.actions || [];
+      const rows = actions.map(action => {
+        const { realMs, targetMs, gapMs, gapPct } = computeGap(action);
+        return `
+          <tr>
+            <td>${action.order}</td>
+            <td>${action.name}</td>
+            <td>${action.family}</td>
+            <td>${action.smedType}</td>
+            <td>${action.actorRole}</td>
+            <td>${action.operatorIndex}</td>
+            <td>${action.targetMin}</td>
+            <td>${formatDuration(realMs)}</td>
+            <td>${formatDuration(targetMs)}</td>
+            <td>${formatSignedDuration(gapMs)}</td>
+            <td>${gapPct === null ? '-' : `${formatNumberFR(gapPct, 1)}%`}</td>
+            <td>${action.gapCause || '-'}</td>
+            <td>${action.comment || ''}</td>
+          </tr>`;
+      }).join('');
+
+      const html = `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+          <meta charset="UTF-8">
+          <title>Rapport SMED</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 24px; }
+            h1 { font-size: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+            th { background: #f0f4ff; }
+            .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+            .card { border: 1px solid #ccc; padding: 10px; border-radius: 8px; }
+          </style>
+        </head>
+        <body>
+          <h1>Rapport SMED · ${session.name}</h1>
+          <div>Date: ${session.meta.date || ''} · Ligne: ${session.meta.line || ''} · PO: ${session.meta.po || ''} · Observateur: ${session.meta.observer || ''}</div>
+          <div class="grid">
+            <div class="card">Total réel : ${formatDuration(performance.realMs)}</div>
+            <div class="card">Total cible : ${formatDuration(performance.targetMs)}</div>
+            <div class="card">Écart : ${formatSignedDuration(performance.gapMs)} (${performance.gapPct === null ? '-' : `${formatNumberFR(performance.gapPct, 1)}%`})</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Action</th>
+                <th>Famille</th>
+                <th>SMED</th>
+                <th>Acteur</th>
+                <th>Op</th>
+                <th>Cible min</th>
+                <th>Réel</th>
+                <th>Cible</th>
+                <th>Écart</th>
+                <th>Écart %</th>
+                <th>Cause</th>
+                <th>Commentaire</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </body>
+        </html>`;
+
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SMED_RAPPORT_${session.name.replace(/\s+/g, '_')}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Détail rapide d'une action du Gantt (popup simple).
+    function selectGanttAction(actionId) {
+      const session = getCurrentSession();
+      if (!session) return;
+      const action = session.actions.find(item => item.id === actionId);
+      if (!action) return;
+      alert(`Phase: ${action.phase || action.name}\nFamille: ${action.family}\nOpérateur: ${action.operatorIndex}\nCible: ${action.targetMin} min\nRéel: ${formatDuration(computeGap(action).realMs)}\nCause: ${action.gapCause || '-'}\nCommentaire: ${action.comment || '-'}`);
+    }
+
     function switchView(view) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      state.activeView = view;
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
       document.querySelector(`.tab[data-view="${view}"]`).classList.add('active');
       document.getElementById('capture-view').style.display = view === 'capture' ? 'grid' : 'none';
       document.getElementById('analysis-view').style.display = view === 'analyse' ? 'grid' : 'none';
-      if (view === 'analyse') renderAnalysisView();
+      document.getElementById('gantt-view').style.display = view === 'gantt' ? 'grid' : 'none';
+      document.getElementById('history-view').style.display = view === 'historique' ? 'grid' : 'none';
+      render();
     }
 
     function bindTabEvents() {
